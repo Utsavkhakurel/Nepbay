@@ -119,7 +119,7 @@ require __DIR__ . '/../includes/header.php';
                                         <input type="hidden" name="user_id" value="<?= $u['id'] ?>">
                                         <?php if ($u['status'] === 'active'): ?>
                                             <button type="submit" name="action" value="block" class="btn-outline danger"
-                                                    onclick="return confirm('Block <?= e($u['name']) ?>?')">Block</button>
+                                                    onclick="return confirm(<?= e(json_encode('Block ' . $u['name'] . '?')) ?>)">Block</button>
                                         <?php else: ?>
                                             <button type="submit" name="action" value="unblock" class="btn-outline">Unblock</button>
                                         <?php endif; ?>

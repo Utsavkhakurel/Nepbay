@@ -7,6 +7,12 @@ function e(?string $text): string
     return htmlspecialchars($text ?? '', ENT_QUOTES, 'UTF-8');
 }
 
+// "2026-10-10 14:30:00" -> "10 Oct 2026"
+function format_date(string $datetime): string
+{
+    return date('j M Y', strtotime($datetime));
+}
+
 function redirect(string $path): void
 {
     header('Location: ' . BASE_URL . $path);
