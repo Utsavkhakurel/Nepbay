@@ -55,10 +55,11 @@ $pageTitle = $auction['title'];
 require __DIR__ . '/includes/header.php';
 ?>
 
-<p class="breadcrumb">
-    <a href="<?= BASE_URL ?>/index.php">Live auctions</a> /
+<nav class="breadcrumb">
+    <a href="<?= BASE_URL ?>/index.php">Home</a>
     <a href="<?= BASE_URL ?>/index.php?category=<?= $auction['category_id'] ?>"><?= e($auction['category']) ?></a>
-</p>
+    <span><?= e($auction['title']) ?></span>
+</nav>
 
 <?php if ($auction['status'] === 'removed'): ?>
     <div class="alert alert-error">This auction was removed by an admin and is hidden from users.</div>
