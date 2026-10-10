@@ -45,7 +45,7 @@ main.container { flex: 1; padding-top: 28px; padding-bottom: 56px; }
     position: sticky; top: 0; z-index: 20;
     background: var(--white); border-bottom: 1px solid var(--border);
 }
-.nav-inner { display: flex; align-items: center; gap: 20px; height: 64px; }
+.nav-inner { display: flex; align-items: center; gap: 32px; height: 64px; }
 
 .logo {
     display: flex; align-items: center; gap: 9px; flex-shrink: 0;
@@ -57,16 +57,17 @@ main.container { flex: 1; padding-top: 28px; padding-bottom: 56px; }
     background: var(--primary); color: var(--white); font-size: 1.05rem; letter-spacing: 0;
 }
 
-/* Page links next to the logo */
-.nav-links { display: flex; align-items: center; gap: 2px; white-space: nowrap; }
+/* Second row with the page links */
+.nav-bottom { border-top: 1px solid var(--border); }
+.nav-links { display: flex; gap: 26px; height: 44px; overflow-x: auto; white-space: nowrap; }
 .nav-links a {
-    padding: 7px 12px; border-radius: 8px;
-    color: var(--text-soft); font-weight: 500; font-size: 0.93rem;
+    display: flex; align-items: center; border-bottom: 2px solid transparent;
+    color: var(--text-soft); font-weight: 500; font-size: 0.92rem;
 }
-.nav-links a:hover { background: var(--bg); color: var(--text); text-decoration: none; }
-.nav-links a.current { background: #eef1f6; color: var(--navy); font-weight: 600; }
+.nav-links a:hover { color: var(--text); text-decoration: none; }
+.nav-links a.current { color: var(--text); font-weight: 600; border-bottom-color: var(--primary); }
 
-.nav-search { position: relative; flex: 1; max-width: 380px; margin-left: auto; }
+.nav-search { position: relative; flex: 1; max-width: 560px; }
 .nav-search svg {
     position: absolute; left: 12px; top: 50%; transform: translateY(-50%);
     fill: none; stroke: var(--muted); stroke-width: 2; stroke-linecap: round; pointer-events: none;
@@ -78,7 +79,7 @@ main.container { flex: 1; padding-top: 28px; padding-bottom: 56px; }
 .nav-search input:focus { background: var(--white); outline: none; border-color: var(--navy); box-shadow: 0 0 0 3px rgba(0, 56, 147, 0.1); }
 
 /* Sell button and account menu on the right */
-.nav-actions { display: flex; align-items: center; gap: 12px; white-space: nowrap; }
+.nav-actions { display: flex; align-items: center; gap: 12px; margin-left: auto; white-space: nowrap; }
 .btn-ghost { padding: 7px 12px; border-radius: 8px; color: var(--text); font-weight: 600; font-size: 0.9rem; }
 .btn-ghost:hover { background: var(--bg); text-decoration: none; }
 
@@ -243,18 +244,13 @@ input[type="file"] { font: inherit; font-size: 0.9rem; }
 .time-left.soon { color: var(--primary); font-weight: 600; }
 
 /* ---------- Auction details ---------- */
-.breadcrumb { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; font-size: 0.88rem; margin-bottom: 18px; }
-.breadcrumb a { color: var(--muted); }
-.breadcrumb a:hover { color: var(--text); }
-/* Small arrow between the links */
-.breadcrumb a::after {
-    content: ""; display: inline-block; width: 6px; height: 6px; margin-left: 10px;
-    border: solid var(--border-strong); border-width: 1.5px 1.5px 0 0; transform: translateY(-1px) rotate(45deg);
+.back-link { display: inline-block; font-size: 0.9rem; font-weight: 500; color: var(--muted); margin-bottom: 16px; }
+.back-link:hover { color: var(--text); text-decoration: none; }
+.category-link {
+    display: inline-block; margin-bottom: 8px; padding: 2px 10px; border-radius: 999px;
+    background: #eef1f6; color: var(--navy); font-size: 0.8rem; font-weight: 600;
 }
-.breadcrumb span {
-    color: var(--text); font-weight: 600;
-    max-width: 320px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
-}
+.category-link:hover { text-decoration: none; background: #e2e7f0; }
 .auction { display: grid; grid-template-columns: 1.3fr 1fr; gap: 32px; align-items: start; }
 .main-photo {
     width: 100%; aspect-ratio: 4 / 3; object-fit: contain; background: var(--white);
@@ -379,9 +375,8 @@ tr.editing td { background: #fffbea; }
 /* ---------- Smaller screens ---------- */
 @media (max-width: 860px) {
     .nav-inner { flex-wrap: wrap; height: auto; padding-top: 10px; padding-bottom: 10px; gap: 10px 16px; }
-    .nav-actions { margin-left: auto; }
-    .nav-search { order: 3; flex-basis: 100%; max-width: none; margin-left: 0; }
-    .nav-links { order: 4; flex-basis: 100%; overflow-x: auto; margin: 0 -12px; }
+    .nav-search { order: 3; flex-basis: 100%; max-width: none; }
+    .nav-links { gap: 20px; }
 
     .admin-layout { grid-template-columns: 1fr; gap: 20px; }
     .admin-sidebar { flex-direction: row; flex-wrap: wrap; gap: 4px; }

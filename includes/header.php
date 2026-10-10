@@ -33,16 +33,6 @@ function nav_link(string $path, string $label, string $currentScript): string
     <div class="container nav-inner">
         <a href="<?= BASE_URL ?>/index.php" class="logo"><span class="logo-mark">N</span>Nepbay</a>
 
-        <nav class="nav-links">
-            <?= nav_link('/index.php', 'Home', $currentScript) ?>
-            <?php if ($user && $user['role'] === 'admin'): ?>
-                <?= nav_link('/admin/index.php', 'Admin', $currentScript) ?>
-            <?php elseif ($user): ?>
-                <?= nav_link('/my-bids.php', 'My bids', $currentScript) ?>
-                <?= nav_link('/my-auctions.php', 'My auctions', $currentScript) ?>
-            <?php endif; ?>
-        </nav>
-
         <form action="<?= BASE_URL ?>/index.php" method="get" class="nav-search" role="search">
             <svg viewBox="0 0 24 24" width="17" height="17" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
             <input type="search" name="q" value="<?= e($searchText) ?>" placeholder="Search auctions" aria-label="Search auctions">
@@ -83,6 +73,22 @@ function nav_link(string $path, string $label, string $currentScript): string
                 <a href="<?= BASE_URL ?>/register.php" class="btn btn-small">Register</a>
             <?php endif; ?>
         </div>
+    </div>
+
+    <!-- Second row: page links -->
+    <div class="nav-bottom">
+        <nav class="container nav-links">
+            <?= nav_link('/index.php', 'Home', $currentScript) ?>
+            <?php if ($user && $user['role'] === 'admin'): ?>
+                <?= nav_link('/admin/index.php', 'Admin panel', $currentScript) ?>
+            <?php elseif ($user): ?>
+                <?= nav_link('/my-bids.php', 'My bids', $currentScript) ?>
+                <?= nav_link('/my-auctions.php', 'My auctions', $currentScript) ?>
+                <?= nav_link('/profile.php', 'Profile', $currentScript) ?>
+            <?php else: ?>
+                <?= nav_link('/sell.php', 'Sell an item', $currentScript) ?>
+            <?php endif; ?>
+        </nav>
     </div>
 </header>
 
