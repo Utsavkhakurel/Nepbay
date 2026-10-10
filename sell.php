@@ -1,0 +1,179 @@
+<?php
+require __DIR__ . '/includes/init.php';
+require_login();
+
+$categories = db()->query('SELECT id, name FROM categories ORDER BY name')->fetchAll();
+$errors = [];
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    // If the upload is bigger than PHP's post_max_size, PHP drops the whole form
+    if (empty($_POST)) {
+        $errors['images'] = 'The photos are too large. Please choose smaller photos.';
+    } else {
+        verify_csrf();
+
+        $title       = trim($_POST['title'] ?? '');
+        $categoryId  = (int) ($_POST['category_id'] ?? 0);
+        $description = trim($_POST['description'] ?? '');
+        $price       = trim($_POST['starting_price'] ?? '');
+        $days        = (int) ($_POST['duration'] ?? 0);
+        $images      = uploaded_files('images');
+
+        // ---- Validation ----
+        if (mb_strlen($title) < 5 || mb_strlen($title) > 150) {
+            $errors['title'] = 'Title must be between 5 and 150 characters.';
+        }
+        if (!in_array($categoryId, array_column($categories, 'id'))) {
+            $errors['category_id'] = 'Please choose a category.';
+        }
+        if (mb_strlen($description) < 20 || mb_strlen($description) > 5000) {
+            $errors['description'] = 'Description must be between 20 and 5000 characters.';
+        }
+        if (!ctype_digit($price) || $price < 10 || $price > 100000000) {
+            $errors['starting_price'] = 'Starting price must be a whole number between Rs. 10 and Rs. 10,00,00,000.';
+        }
+        if (!in_array($days, AUCTION_DURATIONS)) {
+            $errors['duration'] = 'Please choose how long the auction should run.';
+        }
+
+        if (count($images) === 0) {
+            $errors['images'] = 'Please add at least one photo.';
+        } elseif (count($images) > MAX_IMAGES) {
+            $errors['images'] = 'You can add up to ' . MAX_IMAGES . ' photos.';
+        } else {
+            foreach ($images as $i => $image) {
+                if ($image['error'] !== UPLOAD_ERR_OK || $image['size'] > MAX_IMAGE_SIZE) {
+                    $errors['images'] = '"' . $image['name'] . '" is too large. Each photo must be under 2 MB.';
+                    break;
+                }
+                $extension = image_extension($image['tmp_name']);
+                if ($extension === null) {
+                    $errors['images'] = '"' . $image['name'] . '" is not a JPG, PNG or WEBP image.';
+                    break;
+                }
+                $images[$i]['extension'] = $extension;
+            }
+        }
+
+        // ---- Save ----
+        if (empty($errors)) {
+            // Move the photos into /uploads with random names
+            $savedFiles = [];
+            foreach ($images as $image) {
+                $fileName = bin2hex(random_bytes(16)) . '.' . $image['extension'];
+                if (!move_uploaded_file($image['tmp_name'], UPLOAD_DIR . $fileName)) {
+                    throw new RuntimeException('Could not save photo. Check that the uploads folder is writable.');
+                }
+                $savedFiles[] = $fileName;
+            }
+
+            // Save the product, its photos and the auction together:
+            // if any insert fails, none of them are kept.
+            $pdo = db();
+            $pdo->beginTransaction();
+            try {
+                $pdo->prepare('INSERT INTO products (seller_id, category_id, title, description) VALUES (?, ?, ?, ?)')
+                    ->execute([current_user()['id'], $categoryId, $title, $description]);
+                $productId = (int) $pdo->lastInsertId();
+
+                $stmt = $pdo->prepare('INSERT INTO product_images (product_id, file_name, sort_order) VALUES (?, ?, ?)');
+                foreach ($savedFiles as $order => $fileName) {
+                    $stmt->execute([$productId, $fileName, $order]);
+                }
+
+                $startTime = date('Y-m-d H:i:s');
+                $endTime   = date('Y-m-d H:i:s', strtotime("+$days days"));
+                $pdo->prepare('INSERT INTO auctions (product_id, starting_price, start_time, end_time) VALUES (?, ?, ?, ?)')
+                    ->execute([$productId, $price, $startTime, $endTime]);
+
+                $pdo->commit();
+            } catch (Exception $e) {
+                $pdo->rollBack();
+                foreach ($savedFiles as $fileName) {
+                    unlink(UPLOAD_DIR . $fileName);
+                }
+                throw $e;
+            }
+
+            set_flash('success', 'Your auction for "' . $title . '" is now live.');
+            redirect('/my-auctions.php');
+        }
+    }
+}
+
+$pageTitle = 'Sell an item';
+require __DIR__ . '/includes/header.php';
+?>
+
+<div class="form-page">
+    <h1>Sell an item</h1>
+    <p class="muted">Fill in the details below. Your auction starts as soon as you submit.</p>
+
+    <?php if (!empty($errors)): ?>
+        <div class="alert alert-error">Please fix the errors below.<?= isset($_FILES['images']) ? ' You will need to select your photos again.' : '' ?></div>
+    <?php endif; ?>
+
+    <form method="post" enctype="multipart/form-data" novalidate>
+        <?= csrf_field() ?>
+
+        <label for="title">Title</label>
+        <input type="text" id="title" name="title" value="<?= old('title') ?>" maxlength="150"
+               placeholder="e.g. Samsung Galaxy S21, 128GB, black" required>
+        <?php if (isset($errors['title'])): ?><p class="field-error"><?= e($errors['title']) ?></p><?php endif; ?>
+
+        <label for="category_id">Category</label>
+        <select id="category_id" name="category_id" required>
+            <option value="">Choose a category</option>
+            <?php foreach ($categories as $c): ?>
+                <option value="<?= $c['id'] ?>" <?= (int) ($_POST['category_id'] ?? 0) === $c['id'] ? 'selected' : '' ?>><?= e($c['name']) ?></option>
+            <?php endforeach; ?>
+        </select>
+        <?php if (isset($errors['category_id'])): ?><p class="field-error"><?= e($errors['category_id']) ?></p><?php endif; ?>
+
+        <label for="description">Description</label>
+        <textarea id="description" name="description" rows="6" maxlength="5000"
+                  placeholder="Condition, age, what's included, reason for selling..." required><?= old('description') ?></textarea>
+        <?php if (isset($errors['description'])): ?><p class="field-error"><?= e($errors['description']) ?></p><?php endif; ?>
+
+        <div class="form-row half">
+            <div>
+                <label for="starting_price">Starting price (Rs.)</label>
+                <input type="number" id="starting_price" name="starting_price" value="<?= old('starting_price') ?>"
+                       min="10" step="1" required>
+                <?php if (isset($errors['starting_price'])): ?><p class="field-error"><?= e($errors['starting_price']) ?></p><?php endif; ?>
+            </div>
+            <div>
+                <label for="duration">Auction length</label>
+                <select id="duration" name="duration" required>
+                    <?php foreach (AUCTION_DURATIONS as $d): ?>
+                        <option value="<?= $d ?>" <?= (int) ($_POST['duration'] ?? 7) === $d ? 'selected' : '' ?>><?= $d ?> <?= $d === 1 ? 'day' : 'days' ?></option>
+                    <?php endforeach; ?>
+                </select>
+                <?php if (isset($errors['duration'])): ?><p class="field-error"><?= e($errors['duration']) ?></p><?php endif; ?>
+            </div>
+        </div>
+
+        <label for="images">Photos</label>
+        <p class="hint">Up to <?= MAX_IMAGES ?> photos, JPG, PNG or WEBP, 2 MB each. The first photo is used as the cover.</p>
+        <input type="file" id="images" name="images[]" accept="image/jpeg,image/png,image/webp" multiple required>
+        <div id="preview" class="preview"></div>
+        <?php if (isset($errors['images'])): ?><p class="field-error"><?= e($errors['images']) ?></p><?php endif; ?>
+
+        <button type="submit" class="btn">Start auction</button>
+    </form>
+</div>
+
+<script>
+// Show small previews of the chosen photos
+document.getElementById('images').addEventListener('change', function () {
+    const preview = document.getElementById('preview');
+    preview.innerHTML = '';
+    for (const file of this.files) {
+        const img = document.createElement('img');
+        img.src = URL.createObjectURL(file);
+        preview.appendChild(img);
+    }
+});
+</script>
+
+<?php require __DIR__ . '/includes/footer.php'; ?>

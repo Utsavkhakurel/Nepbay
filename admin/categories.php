@@ -15,7 +15,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt->execute([$id]);
         $category = $stmt->fetch();
 
-        if ($category) {
+        $stmt = db()->prepare('SELECT COUNT(*) FROM products WHERE category_id = ?');
+        $stmt->execute([$id]);
+        $productCount = (int) $stmt->fetchColumn();
+
+        if ($category && $productCount > 0) {
+            set_flash('error', 'Can\'t delete "' . $category['name'] . '" because ' . $productCount . ' item(s) are listed in it.');
+        } elseif ($category) {
             db()->prepare('DELETE FROM categories WHERE id = ?')->execute([$id]);
             set_flash('success', 'Category "' . $category['name'] . '" deleted.');
         }

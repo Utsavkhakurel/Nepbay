@@ -39,3 +39,40 @@ INSERT IGNORE INTO categories (name, description) VALUES
     ('Sports & Fitness',  'Sports equipment and gym gear'),
     ('Collectibles',      'Coins, stamps, antiques and art'),
     ('Others',            'Anything that does not fit above');
+
+-- The item being sold
+CREATE TABLE IF NOT EXISTS products (
+    id          INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    seller_id   INT UNSIGNED NOT NULL,
+    category_id INT UNSIGNED NOT NULL,
+    title       VARCHAR(150) NOT NULL,
+    description TEXT NOT NULL,
+    created_at  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (seller_id)   REFERENCES users(id),
+    FOREIGN KEY (category_id) REFERENCES categories(id)
+) ENGINE=InnoDB;
+
+-- Photos of a product (the first one, sort_order 0, is the cover photo)
+CREATE TABLE IF NOT EXISTS product_images (
+    id         INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    product_id INT UNSIGNED NOT NULL,
+    file_name  VARCHAR(100) NOT NULL,
+    sort_order TINYINT UNSIGNED NOT NULL DEFAULT 0,
+    FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+-- One auction per product
+CREATE TABLE IF NOT EXISTS auctions (
+    id             INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    product_id     INT UNSIGNED NOT NULL UNIQUE,
+    starting_price DECIMAL(12,2) NOT NULL,
+    current_bid    DECIMAL(12,2) NULL,              -- NULL until someone bids
+    start_time     DATETIME NOT NULL,
+    end_time       DATETIME NOT NULL,
+    status         ENUM('active', 'ended', 'removed') NOT NULL DEFAULT 'active',
+    winner_id      INT UNSIGNED NULL,               -- set when the auction ends
+    created_at     DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE,
+    FOREIGN KEY (winner_id)  REFERENCES users(id),
+    INDEX (status, end_time)
+) ENGINE=InnoDB;

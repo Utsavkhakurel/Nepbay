@@ -19,6 +19,9 @@ $flash = get_flash();
             <?php if ($user): ?>
                 <?php if ($user['role'] === 'admin'): ?>
                     <a href="<?= BASE_URL ?>/admin/index.php">Admin Panel</a>
+                <?php else: ?>
+                    <a href="<?= BASE_URL ?>/sell.php">Sell</a>
+                    <a href="<?= BASE_URL ?>/my-auctions.php">My auctions</a>
                 <?php endif; ?>
                 <span class="nav-user">Hi, <?= e($user['name']) ?></span>
                 <form action="<?= BASE_URL ?>/logout.php" method="post" class="inline">

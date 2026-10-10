@@ -7,3 +7,4 @@ Thumbs.db
 # User uploads (item images etc.)
 uploads/*
 !uploads/.gitkeep
+!uploads/.htaccess

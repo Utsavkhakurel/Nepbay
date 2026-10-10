@@ -78,6 +78,34 @@ input:focus { outline: 2px solid var(--navy); outline-offset: -1px; }
 .field-error { color: var(--error-text); font-size: 0.9rem; margin-top: 4px; }
 .auth-switch { text-align: center; margin-top: 20px; }
 
+/* ---------- Sell form ---------- */
+.form-page { max-width: 640px; margin: 0 auto; }
+.form-page h1 { font-size: 1.6rem; }
+.form-page form {
+    background: var(--white); border: 1px solid var(--border); border-radius: 10px;
+    padding: 8px 28px 28px; margin-top: 20px;
+}
+.form-page .btn { margin-top: 24px; }
+select, textarea, input[type="number"] {
+    width: 100%; padding: 10px 12px; border: 1px solid var(--border);
+    border-radius: 6px; font: inherit; background: var(--white);
+}
+textarea { resize: vertical; }
+input[type="file"] { font: inherit; }
+.form-row.half { grid-template-columns: 1fr 1fr; }
+.hint { font-size: 0.85rem; color: var(--muted); margin-bottom: 8px; }
+.preview { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+.preview img { width: 80px; height: 80px; object-fit: cover; border-radius: 6px; border: 1px solid var(--border); }
+
+/* ---------- My auctions ---------- */
+.page-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+.page-head h1 { font-size: 1.6rem; }
+.item-cell { display: flex; align-items: center; gap: 12px; }
+.item-cell span { white-space: normal; min-width: 180px; }
+.thumb { width: 48px; height: 48px; object-fit: cover; border-radius: 6px; border: 1px solid var(--border); }
+.badge-ended   { background: #eef0f3; color: var(--muted); }
+.badge-removed { background: var(--error-bg); color: var(--error-text); }
+
 /* ---------- Home ---------- */
 .intro h1 { font-size: 1.6rem; }
 
@@ -160,7 +188,8 @@ a.btn-outline:hover { text-decoration: none; }
     .sidebar-title { display: none; }
     .stats { grid-template-columns: repeat(2, 1fr); }
     .filters input { width: 100%; }
-    .form-row { grid-template-columns: 1fr; gap: 0; }
+    .form-row, .form-row.half { grid-template-columns: 1fr; gap: 0; }
+    .form-page form { padding: 4px 18px 22px; }
 }
 
 /* ---------- Footer ---------- */
