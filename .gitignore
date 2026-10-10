@@ -1,0 +1,9 @@
+# Editor / OS files
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# User uploads (item images etc.)
+uploads/*
+!uploads/.gitkeep

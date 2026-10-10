@@ -1,0 +1,96 @@
+:root {
+    --primary: #c8102e;        /* Nepal flag crimson */
+    --primary-dark: #a00d24;
+    --navy: #003893;           /* Nepal flag blue */
+    --text: #1f2933;
+    --muted: #6b7280;
+    --border: #d9dde3;
+    --bg: #f5f6f8;
+    --white: #ffffff;
+    --success-bg: #e7f6ec;
+    --success-text: #1e7a3c;
+    --error-bg: #fdecee;
+    --error-text: #b4232f;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    color: var(--text);
+    background: var(--bg);
+    line-height: 1.6;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+a { color: var(--navy); text-decoration: none; }
+a:hover { text-decoration: underline; }
+
+.container { width: 100%; max-width: 1100px; margin: 0 auto; padding: 0 16px; }
+main.container { flex: 1; padding-top: 32px; padding-bottom: 48px; }
+.muted { color: var(--muted); }
+
+/* ---------- Navbar ---------- */
+.navbar { background: var(--white); border-bottom: 1px solid var(--border); }
+.nav-inner { display: flex; align-items: center; justify-content: space-between; height: 64px; }
+.logo { font-size: 1.6rem; font-weight: 800; color: var(--navy); }
+.logo span { color: var(--primary); }
+.logo:hover { text-decoration: none; }
+nav { display: flex; align-items: center; gap: 18px; }
+.nav-user { color: var(--muted); }
+.inline { display: inline; }
+.link-button {
+    background: none; border: none; padding: 0; font: inherit;
+    color: var(--navy); cursor: pointer;
+}
+.link-button:hover { text-decoration: underline; }
+
+/* ---------- Buttons ---------- */
+.btn {
+    display: inline-block; background: var(--primary); color: var(--white);
+    border: none; border-radius: 6px; padding: 10px 20px;
+    font: inherit; font-weight: 600; cursor: pointer;
+}
+.btn:hover { background: var(--primary-dark); text-decoration: none; }
+.btn-small { padding: 6px 14px; }
+.btn-full { width: 100%; margin-top: 20px; }
+
+/* ---------- Alerts ---------- */
+.alert { padding: 12px 16px; border-radius: 6px; margin-bottom: 20px; }
+.alert-success { background: var(--success-bg); color: var(--success-text); }
+.alert-error   { background: var(--error-bg);   color: var(--error-text); }
+
+/* ---------- Auth forms ---------- */
+.auth-card {
+    max-width: 420px; margin: 0 auto; background: var(--white);
+    border: 1px solid var(--border); border-radius: 10px; padding: 32px;
+}
+.auth-card h1 { font-size: 1.6rem; margin-bottom: 4px; }
+.auth-card > .muted { margin-bottom: 20px; }
+label { display: block; font-weight: 600; margin: 14px 0 6px; }
+input[type="text"], input[type="email"], input[type="tel"], input[type="password"] {
+    width: 100%; padding: 10px 12px; border: 1px solid var(--border);
+    border-radius: 6px; font: inherit;
+}
+input:focus { outline: 2px solid var(--navy); outline-offset: -1px; }
+.field-error { color: var(--error-text); font-size: 0.9rem; margin-top: 4px; }
+.auth-switch { text-align: center; margin-top: 20px; }
+
+/* ---------- Home ---------- */
+.hero { text-align: center; padding: 64px 0; }
+.hero h1 { font-size: 2.6rem; color: var(--navy); }
+.hero p { color: var(--muted); margin: 10px 0 24px; }
+
+/* ---------- Footer ---------- */
+.footer {
+    background: var(--white); border-top: 1px solid var(--border);
+    padding: 20px 0; text-align: center; color: var(--muted); font-size: 0.9rem;
+}
+
+@media (max-width: 480px) {
+    .auth-card { padding: 24px 18px; }
+    .nav-user { display: none; }
+    .hero h1 { font-size: 2rem; }
+}
