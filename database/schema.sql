@@ -21,3 +21,21 @@ CREATE TABLE IF NOT EXISTS users (
 INSERT IGNORE INTO users (name, email, password_hash, role)
 VALUES ('Administrator', 'admin@nepbay.com',
         '$2y$10$b790paF49Qd2YtckUf3.6unWx2fyb2aqEo8CdER/iGRZAmouqSaHy', 'admin');
+
+-- Product categories, managed by the admin
+CREATE TABLE IF NOT EXISTS categories (
+    id          INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    name        VARCHAR(100) NOT NULL UNIQUE,
+    description VARCHAR(255) NULL,
+    created_at  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB;
+
+INSERT IGNORE INTO categories (name, description) VALUES
+    ('Electronics',       'Phones, laptops, cameras and accessories'),
+    ('Vehicles',          'Bikes, scooters, cars and parts'),
+    ('Fashion',           'Clothing, shoes, bags and watches'),
+    ('Home & Furniture',  'Furniture, kitchen items and decor'),
+    ('Books',             'Textbooks, novels and magazines'),
+    ('Sports & Fitness',  'Sports equipment and gym gear'),
+    ('Collectibles',      'Coins, stamps, antiques and art'),
+    ('Others',            'Anything that does not fit above');

@@ -4,6 +4,7 @@ $currentPage = basename($_SERVER['PHP_SELF']);
 $adminLinks = [
     'index.php' => 'Dashboard',
     'users.php' => 'Users',
+    'categories.php' => 'Categories',
 ];
 ?>
 <aside class="admin-sidebar">
