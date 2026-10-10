@@ -55,7 +55,7 @@ require __DIR__ . '/includes/header.php';
                         <td>
                             <div class="item-cell">
                                 <img src="<?= image_url($a['image']) ?>" alt="" class="thumb">
-                                <span><?= e($a['title']) ?></span>
+                                <a href="<?= BASE_URL ?>/auction.php?id=<?= $a['id'] ?>"><?= e($a['title']) ?></a>
                             </div>
                         </td>
                         <td><?= e($a['category']) ?></td>

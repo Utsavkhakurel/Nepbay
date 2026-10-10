@@ -61,12 +61,6 @@ $stmt = db()->prepare("
 $stmt->execute($params);
 $users = $stmt->fetchAll();
 
-// Builds a link to another page while keeping the current filters
-function page_link(int $pageNumber): string
-{
-    return '?' . http_build_query(array_merge($_GET, ['page' => $pageNumber]));
-}
-
 $pageTitle = 'Users';
 require __DIR__ . '/../includes/header.php';
 ?>

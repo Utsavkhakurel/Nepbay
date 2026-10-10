@@ -19,10 +19,44 @@ function format_datetime(string $datetime): string
     return date('j M Y, g:i A', strtotime($datetime));
 }
 
-// 15000 -> "Rs. 15,000"
+// Nepali number style: 152000 -> "Rs. 1,52,000"
+// (the last 3 digits are grouped together, then groups of 2)
 function format_price($amount): string
 {
-    return 'Rs. ' . number_format((float) $amount);
+    $number = (string) round((float) $amount);
+    $last3  = substr($number, -3);
+    $rest   = substr($number, 0, -3);
+
+    if ($rest === '') {
+        return 'Rs. ' . $last3;
+    }
+    $rest = preg_replace('/\B(?=(\d{2})+$)/', ',', $rest);
+    return 'Rs. ' . $rest . ',' . $last3;
+}
+
+// 190000 -> "2d 4h left", 4500 -> "1h 15m left", 300 -> "5m 0s left"
+function time_left(int $seconds): string
+{
+    if ($seconds <= 0) {
+        return 'Ended';
+    }
+    $days    = intdiv($seconds, 86400);
+    $hours   = intdiv($seconds % 86400, 3600);
+    $minutes = intdiv($seconds % 3600, 60);
+
+    if ($days > 0) {
+        return "{$days}d {$hours}h left";
+    }
+    if ($hours > 0) {
+        return "{$hours}h {$minutes}m left";
+    }
+    return "{$minutes}m " . ($seconds % 60) . 's left';
+}
+
+// Link to another page of a list while keeping the current search and filters
+function page_link(int $pageNumber): string
+{
+    return '?' . http_build_query(array_merge($_GET, ['page' => $pageNumber]));
 }
 
 function image_url(?string $fileName): string
