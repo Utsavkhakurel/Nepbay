@@ -86,6 +86,8 @@ input:focus { outline: 2px solid var(--navy); outline-offset: -1px; }
     padding: 8px 28px 28px; margin-top: 20px;
 }
 .form-page .btn { margin-top: 24px; }
+.form-page form h2 { font-size: 1.1rem; margin-top: 18px; }
+input:disabled { background: var(--bg); color: var(--muted); }
 select, textarea, input[type="number"] {
     width: 100%; padding: 10px 12px; border: 1px solid var(--border);
     border-radius: 6px; font: inherit; background: var(--white);
@@ -95,6 +97,13 @@ input[type="file"] { font: inherit; }
 .form-row.half { grid-template-columns: 1fr 1fr; }
 .hint { font-size: 0.85rem; color: var(--muted); margin-bottom: 8px; }
 .preview { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+.current-photos { display: flex; flex-wrap: wrap; gap: 12px; }
+.photo-option { margin: 0; font-weight: 400; font-size: 0.9rem; cursor: pointer; }
+.photo-option img {
+    display: block; width: 96px; height: 96px; object-fit: cover;
+    border-radius: 6px; border: 1px solid var(--border); margin-bottom: 4px;
+}
+.photo-option:has(input:checked) img { opacity: 0.35; }
 .preview img { width: 80px; height: 80px; object-fit: cover; border-radius: 6px; border: 1px solid var(--border); }
 
 /* ---------- My auctions ---------- */
@@ -108,6 +117,8 @@ input[type="file"] { font: inherit; }
 .badge-winning, .badge-won { background: var(--success-bg); color: var(--success-text); }
 .badge-outbid  { background: #fff4e0; color: #9a5b00; }
 .badge-lost    { background: #eef0f3; color: var(--muted); }
+.badge-sold    { background: var(--success-bg); color: var(--success-text); }
+.badge-unsold  { background: #eef0f3; color: var(--muted); }
 
 /* ---------- Auction cards (home page) ---------- */
 .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 20px; }
@@ -152,6 +163,12 @@ input[type="file"] { font: inherit; }
 .details .time-left { font-size: inherit; }
 .note { margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--border); color: var(--muted); }
 .note.winning { color: var(--success-text); font-weight: 600; }
+.result {
+    margin-top: 14px; padding: 14px 16px; border-radius: 6px;
+    background: var(--success-bg); color: var(--success-text);
+}
+.result p { margin-top: 6px; color: var(--text); }
+.result .contact { line-height: 1.7; }
 .bid-form { margin-top: 14px; padding-top: 6px; border-top: 1px solid var(--border); }
 .bid-row { display: flex; gap: 10px; }
 .bid-row input { flex: 1; }
@@ -186,6 +203,25 @@ input[type="file"] { font: inherit; }
 .stat-value { font-size: 1.7rem; font-weight: 700; }
 
 .section-head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 12px; }
+.section-head.spaced { margin-top: 32px; }
+.stats + .stats { margin-top: -20px; }
+.small { font-size: 0.85rem; }
+.badge-live { background: var(--success-bg); color: var(--success-text); }
+
+/* ---------- Reports ---------- */
+.report h1 { margin-bottom: 4px; }
+.report-meta { margin-bottom: 16px; }
+.report .stat-value { font-size: 1.5rem; }
+.report-heading { margin: 28px 0 10px; }
+.report-columns { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+
+@media print {
+    .navbar, .footer, .admin-sidebar, .no-print { display: none !important; }
+    body { background: #fff; }
+    main.container { padding: 0; max-width: none; }
+    .admin-layout { display: block; }
+    .stat, .table-wrap { break-inside: avoid; }
+}
 
 /* ---------- Tables ---------- */
 .table-wrap { overflow-x: auto; background: var(--white); border: 1px solid var(--border); border-radius: 8px; }
@@ -193,7 +229,7 @@ table { width: 100%; border-collapse: collapse; }
 th, td { padding: 10px 14px; text-align: left; border-bottom: 1px solid var(--border); white-space: nowrap; }
 th { font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.04em; color: var(--muted); font-weight: 600; }
 tbody tr:last-child td { border-bottom: none; }
-td.actions { text-align: right; }
+td.actions { text-align: right; white-space: nowrap; }
 td.wrap { white-space: normal; min-width: 220px; }
 tr.editing td { background: #fffbea; }
 
@@ -206,6 +242,8 @@ tr.editing td { background: #fffbea; }
 .panel label { margin-top: 10px; }
 .form-row { display: grid; grid-template-columns: 1fr 2fr; gap: 16px; }
 .form-actions { display: flex; align-items: center; gap: 16px; margin-top: 16px; }
+.form-page .form-actions { margin-top: 24px; }
+.form-actions .btn { margin-top: 0; }
 
 .badge { display: inline-block; padding: 1px 8px; border-radius: 4px; font-size: 0.8rem; font-weight: 600; }
 .badge-active  { background: var(--success-bg); color: var(--success-text); }
@@ -242,6 +280,7 @@ a.btn-outline:hover { text-decoration: none; }
     .stats { grid-template-columns: repeat(2, 1fr); }
     .filters input { width: 100%; }
     .form-row, .form-row.half { grid-template-columns: 1fr; gap: 0; }
+    .report-columns { grid-template-columns: 1fr; gap: 0; }
     .form-page form { padding: 4px 18px 22px; }
     .auction { grid-template-columns: 1fr; gap: 20px; }
     .grid { grid-template-columns: repeat(2, 1fr); gap: 12px; }

@@ -80,6 +80,33 @@ function minimum_bid($startingPrice, $currentBid): float
     return (float) $currentBid + bid_increment((float) $currentBid);
 }
 
+// Closes every auction whose time is up and saves the highest bidder as the winner
+// (winner stays NULL if nobody bid). PHP can't run tasks in the background, so this
+// is called at the start of every page load instead. It is one quick query.
+function close_ended_auctions(): void
+{
+    db()->exec("
+        UPDATE auctions
+        SET status = 'ended',
+            winner_id = (SELECT user_id FROM bids
+                         WHERE bids.auction_id = auctions.id
+                         ORDER BY amount DESC LIMIT 1)
+        WHERE status = 'active' AND end_time <= NOW()
+    ");
+}
+
+// One word describing an auction for the admin pages: live, sold, unsold or removed
+function auction_status(array $auction): string
+{
+    if ($auction['status'] === 'removed') {
+        return 'removed';
+    }
+    if ($auction['status'] === 'ended') {
+        return $auction['winner_id'] ? 'sold' : 'unsold';
+    }
+    return 'live';
+}
+
 // Hide bidder names in public bid history: "Sita Sharma" -> "S***a"
 function mask_name(string $name): string
 {
@@ -119,6 +146,72 @@ function uploaded_files(string $field): array
         ];
     }
     return $files;
+}
+
+// Checks the listing fields shared by sell.php and edit-auction.php.
+// Returns an array of error messages keyed by field name (empty = all fine).
+function listing_errors(string $title, int $categoryId, string $description, string $price, array $categories): array
+{
+    $errors = [];
+    if (mb_strlen($title) < 5 || mb_strlen($title) > 150) {
+        $errors['title'] = 'Title must be between 5 and 150 characters.';
+    }
+    if (!in_array($categoryId, array_column($categories, 'id'))) {
+        $errors['category_id'] = 'Please choose a category.';
+    }
+    if (mb_strlen($description) < 20 || mb_strlen($description) > 5000) {
+        $errors['description'] = 'Description must be between 20 and 5000 characters.';
+    }
+    if (!ctype_digit($price) || $price < 10 || $price > 100000000) {
+        $errors['starting_price'] = 'Starting price must be a whole number between Rs. 10 and Rs. 10,00,00,000.';
+    }
+    return $errors;
+}
+
+// Checks new photos. $keptCount is how many photos the listing already has.
+// Returns an error message, or null if the photos are fine.
+function image_upload_error(array $images, int $keptCount = 0): ?string
+{
+    $total = $keptCount + count($images);
+    if ($total === 0) {
+        return 'Please add at least one photo.';
+    }
+    if ($total > MAX_IMAGES) {
+        return 'A listing can have up to ' . MAX_IMAGES . ' photos.';
+    }
+    foreach ($images as $image) {
+        if ($image['error'] !== UPLOAD_ERR_OK || $image['size'] > MAX_IMAGE_SIZE) {
+            return '"' . $image['name'] . '" is too large. Each photo must be under 2 MB.';
+        }
+        if (image_extension($image['tmp_name']) === null) {
+            return '"' . $image['name'] . '" is not a JPG, PNG or WEBP image.';
+        }
+    }
+    return null;
+}
+
+// Moves checked photos into /uploads with random names and returns the new file names
+function save_images(array $images): array
+{
+    $saved = [];
+    foreach ($images as $image) {
+        $fileName = bin2hex(random_bytes(16)) . '.' . image_extension($image['tmp_name']);
+        if (!move_uploaded_file($image['tmp_name'], UPLOAD_DIR . $fileName)) {
+            delete_images($saved);
+            throw new RuntimeException('Could not save photo. Check that the uploads folder is writable.');
+        }
+        $saved[] = $fileName;
+    }
+    return $saved;
+}
+
+function delete_images(array $fileNames): void
+{
+    foreach ($fileNames as $fileName) {
+        if (is_file(UPLOAD_DIR . $fileName)) {
+            unlink(UPLOAD_DIR . $fileName);
+        }
+    }
 }
 
 // Looks at the file's real content (not its name) and returns

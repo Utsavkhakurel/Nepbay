@@ -7,7 +7,7 @@ $userId = current_user()['id'];
 // Every auction this user has bid on, with their own highest bid.
 // Live auctions come first, then the rest.
 $stmt = db()->prepare("
-    SELECT a.id, a.current_bid, a.end_time, a.status,
+    SELECT a.id, a.current_bid, a.end_time, a.status, a.winner_id,
            TIMESTAMPDIFF(SECOND, NOW(), a.end_time) AS seconds_left,
            p.title,
            (SELECT MAX(amount) FROM bids WHERE auction_id = a.id AND user_id = ?) AS my_bid,
@@ -52,7 +52,7 @@ require __DIR__ . '/includes/header.php';
                     if ($a['status'] === 'removed') {
                         $status = 'removed';
                     } elseif ($hasEnded) {
-                        $status = $isHighest ? 'won' : 'lost';
+                        $status = (int) $a['winner_id'] === $userId ? 'won' : 'lost';
                     } else {
                         $status = $isHighest ? 'winning' : 'outbid';
                     }

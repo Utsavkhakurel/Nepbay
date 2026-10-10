@@ -20,52 +20,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $images      = uploaded_files('images');
 
         // ---- Validation ----
-        if (mb_strlen($title) < 5 || mb_strlen($title) > 150) {
-            $errors['title'] = 'Title must be between 5 and 150 characters.';
-        }
-        if (!in_array($categoryId, array_column($categories, 'id'))) {
-            $errors['category_id'] = 'Please choose a category.';
-        }
-        if (mb_strlen($description) < 20 || mb_strlen($description) > 5000) {
-            $errors['description'] = 'Description must be between 20 and 5000 characters.';
-        }
-        if (!ctype_digit($price) || $price < 10 || $price > 100000000) {
-            $errors['starting_price'] = 'Starting price must be a whole number between Rs. 10 and Rs. 10,00,00,000.';
-        }
+        $errors = listing_errors($title, $categoryId, $description, $price, $categories);
         if (!in_array($days, AUCTION_DURATIONS)) {
             $errors['duration'] = 'Please choose how long the auction should run.';
         }
-
-        if (count($images) === 0) {
-            $errors['images'] = 'Please add at least one photo.';
-        } elseif (count($images) > MAX_IMAGES) {
-            $errors['images'] = 'You can add up to ' . MAX_IMAGES . ' photos.';
-        } else {
-            foreach ($images as $i => $image) {
-                if ($image['error'] !== UPLOAD_ERR_OK || $image['size'] > MAX_IMAGE_SIZE) {
-                    $errors['images'] = '"' . $image['name'] . '" is too large. Each photo must be under 2 MB.';
-                    break;
-                }
-                $extension = image_extension($image['tmp_name']);
-                if ($extension === null) {
-                    $errors['images'] = '"' . $image['name'] . '" is not a JPG, PNG or WEBP image.';
-                    break;
-                }
-                $images[$i]['extension'] = $extension;
-            }
+        $imageError = image_upload_error($images);
+        if ($imageError) {
+            $errors['images'] = $imageError;
         }
 
         // ---- Save ----
         if (empty($errors)) {
-            // Move the photos into /uploads with random names
-            $savedFiles = [];
-            foreach ($images as $image) {
-                $fileName = bin2hex(random_bytes(16)) . '.' . $image['extension'];
-                if (!move_uploaded_file($image['tmp_name'], UPLOAD_DIR . $fileName)) {
-                    throw new RuntimeException('Could not save photo. Check that the uploads folder is writable.');
-                }
-                $savedFiles[] = $fileName;
-            }
+            $savedFiles = save_images($images);
 
             // Save the product, its photos and the auction together:
             // if any insert fails, none of them are kept.
@@ -89,9 +55,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $pdo->commit();
             } catch (Exception $e) {
                 $pdo->rollBack();
-                foreach ($savedFiles as $fileName) {
-                    unlink(UPLOAD_DIR . $fileName);
-                }
+                delete_images($savedFiles);
                 throw $e;
             }
 

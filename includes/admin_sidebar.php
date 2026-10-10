@@ -5,6 +5,9 @@ $adminLinks = [
     'index.php' => 'Dashboard',
     'users.php' => 'Users',
     'categories.php' => 'Categories',
+    'auctions.php' => 'Auctions',
+    'bids.php' => 'Bids',
+    'reports.php' => 'Reports',
 ];
 ?>
 <aside class="admin-sidebar">

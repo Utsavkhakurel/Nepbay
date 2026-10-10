@@ -2,15 +2,17 @@
 require __DIR__ . '/includes/init.php';
 
 $stmt = db()->prepare("
-    SELECT a.id, a.starting_price, a.current_bid, a.start_time, a.end_time, a.status,
+    SELECT a.id, a.starting_price, a.current_bid, a.start_time, a.end_time, a.status, a.winner_id,
            TIMESTAMPDIFF(SECOND, NOW(), a.end_time) AS seconds_left,
            p.id AS product_id, p.title, p.description, p.seller_id,
            c.id AS category_id, c.name AS category,
-           u.name AS seller_name, u.created_at AS seller_since
+           u.name AS seller_name, u.email AS seller_email, u.phone AS seller_phone, u.created_at AS seller_since,
+           w.name AS winner_name, w.email AS winner_email, w.phone AS winner_phone
     FROM auctions a
     JOIN products p   ON p.id = a.product_id
     JOIN categories c ON c.id = p.category_id
     JOIN users u      ON u.id = p.seller_id
+    LEFT JOIN users w ON w.id = a.winner_id
     WHERE a.id = ?
 ");
 $stmt->execute([(int) ($_GET['id'] ?? 0)]);
@@ -46,6 +48,7 @@ $hasEnded        = $auction['status'] !== 'active' || $secondsLeft <= 0;
 $userId          = is_logged_in() ? current_user()['id'] : 0;
 $isOwner         = $userId === (int) $auction['seller_id'];
 $highestBidderId = $bids ? (int) $bids[0]['user_id'] : 0;
+$winnerId        = (int) $auction['winner_id'];
 $minimumBid      = minimum_bid($auction['starting_price'], $auction['current_bid']);
 
 $pageTitle = $auction['title'];
@@ -77,7 +80,15 @@ require __DIR__ . '/includes/header.php';
         <h1><?= e($auction['title']) ?></h1>
 
         <div class="bid-box">
-            <span class="price-label"><?= $auction['current_bid'] ? 'Current bid' : 'Starting price' ?></span>
+            <span class="price-label">
+                <?php if ($hasEnded && $auction['current_bid']): ?>
+                    Winning bid
+                <?php elseif ($auction['current_bid']): ?>
+                    Current bid
+                <?php else: ?>
+                    Starting price
+                <?php endif; ?>
+            </span>
             <span class="price big"><?= format_price($auction['current_bid'] ?? $auction['starting_price']) ?></span>
 
             <dl class="details">
@@ -101,10 +112,39 @@ require __DIR__ . '/includes/header.php';
                 <dd><?= format_datetime($auction['start_time']) ?></dd>
             </dl>
 
-            <?php if ($hasEnded): ?>
+            <?php if ($hasEnded && !$winnerId): ?>
+                <p class="note">This auction ended with no bids.</p>
+            <?php elseif ($hasEnded && $winnerId === $userId): ?>
+                <div class="result">
+                    <strong>You won this auction.</strong>
+                    <p>Contact the seller to arrange payment and pickup:</p>
+                    <p class="contact">
+                        <?= e($auction['seller_name']) ?><br>
+                        <a href="mailto:<?= e($auction['seller_email']) ?>"><?= e($auction['seller_email']) ?></a>
+                        <?php if ($auction['seller_phone']): ?><br><?= e($auction['seller_phone']) ?><?php endif; ?>
+                    </p>
+                </div>
+            <?php elseif ($hasEnded && $isOwner): ?>
+                <div class="result">
+                    <strong>Your item sold for <?= format_price($auction['current_bid']) ?>.</strong>
+                    <p>Contact the buyer to arrange payment and pickup:</p>
+                    <p class="contact">
+                        <?= e($auction['winner_name']) ?><br>
+                        <a href="mailto:<?= e($auction['winner_email']) ?>"><?= e($auction['winner_email']) ?></a>
+                        <?php if ($auction['winner_phone']): ?><br><?= e($auction['winner_phone']) ?><?php endif; ?>
+                    </p>
+                </div>
+            <?php elseif ($hasEnded && is_admin()): ?>
+                <p class="note">Won by <?= e($auction['winner_name']) ?> (<?= e($auction['winner_email']) ?>).</p>
+            <?php elseif ($hasEnded): ?>
                 <p class="note">This auction has ended.</p>
             <?php elseif ($isOwner): ?>
-                <p class="note">This is your auction.</p>
+                <p class="note">
+                    This is your auction.
+                    <?php if (!$bids): ?>
+                        <a href="<?= BASE_URL ?>/edit-auction.php?id=<?= $auction['id'] ?>">Edit listing</a>
+                    <?php endif; ?>
+                </p>
             <?php elseif (!is_logged_in()): ?>
                 <p class="note">
                     <a href="<?= BASE_URL ?>/login.php?redirect=<?= urlencode('/auction.php?id=' . $auction['id']) ?>">Log in</a>

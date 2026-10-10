@@ -12,3 +12,5 @@ session_set_cookie_params([
     'samesite' => 'Lax',
 ]);
 session_start();
+
+close_ended_auctions();

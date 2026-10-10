@@ -11,6 +11,24 @@ $stats = db()->query("
     WHERE role = 'user'
 ")->fetch();
 
+$auctionStats = db()->query("
+    SELECT SUM(status = 'active')                                                          AS live,
+           SUM(status = 'ended' AND winner_id IS NOT NULL)                                 AS sold,
+           SUM(CASE WHEN status = 'ended' AND winner_id IS NOT NULL THEN current_bid END) AS sales_value
+    FROM auctions
+")->fetch();
+
+$bidsToday = (int) db()->query('SELECT COUNT(*) FROM bids WHERE created_at >= CURDATE()')->fetchColumn();
+
+$latestAuctions = db()->query("
+    SELECT a.id, a.starting_price, a.current_bid, a.status, a.winner_id, p.title, u.name AS seller_name
+    FROM auctions a
+    JOIN products p ON p.id = a.product_id
+    JOIN users u    ON u.id = p.seller_id
+    ORDER BY a.created_at DESC
+    LIMIT 5
+")->fetchAll();
+
 $recentUsers = db()->query("
     SELECT id, name, email, status, created_at
     FROM users
@@ -48,7 +66,59 @@ require __DIR__ . '/../includes/header.php';
             </div>
         </div>
 
+        <div class="stats">
+            <div class="stat">
+                <span class="stat-label">Live auctions</span>
+                <span class="stat-value"><?= (int) $auctionStats['live'] ?></span>
+            </div>
+            <div class="stat">
+                <span class="stat-label">Items sold</span>
+                <span class="stat-value"><?= (int) $auctionStats['sold'] ?></span>
+            </div>
+            <div class="stat">
+                <span class="stat-label">Total sales</span>
+                <span class="stat-value"><?= format_price($auctionStats['sales_value'] ?? 0) ?></span>
+            </div>
+            <div class="stat">
+                <span class="stat-label">Bids today</span>
+                <span class="stat-value"><?= $bidsToday ?></span>
+            </div>
+        </div>
+
         <div class="section-head">
+            <h2>Latest auctions</h2>
+            <a href="<?= BASE_URL ?>/admin/auctions.php">View all</a>
+        </div>
+
+        <?php if (empty($latestAuctions)): ?>
+            <p class="empty">No auctions have been listed yet.</p>
+        <?php else: ?>
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Item</th>
+                            <th>Seller</th>
+                            <th>Price</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php foreach ($latestAuctions as $a): ?>
+                            <?php $s = auction_status($a); ?>
+                            <tr>
+                                <td class="wrap"><a href="<?= BASE_URL ?>/auction.php?id=<?= $a['id'] ?>"><?= e($a['title']) ?></a></td>
+                                <td><?= e($a['seller_name']) ?></td>
+                                <td><?= format_price($a['current_bid'] ?? $a['starting_price']) ?></td>
+                                <td><span class="badge badge-<?= $s ?>"><?= ucfirst($s) ?></span></td>
+                            </tr>
+                        <?php endforeach; ?>
+                    </tbody>
+                </table>
+            </div>
+        <?php endif; ?>
+
+        <div class="section-head spaced">
             <h2>Recent registrations</h2>
             <a href="<?= BASE_URL ?>/admin/users.php">View all</a>
         </div>
