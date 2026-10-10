@@ -55,6 +55,7 @@ $stmt = db()->prepare("
            COALESCE(a.current_bid, a.starting_price)   AS price,
            TIMESTAMPDIFF(SECOND, NOW(), a.end_time)    AS seconds_left,
            p.title, c.name AS category,
+           (SELECT COUNT(*) FROM bids WHERE auction_id = a.id) AS bid_count,
            (SELECT file_name FROM product_images
             WHERE product_id = p.id ORDER BY sort_order LIMIT 1) AS image
     $fromSql
@@ -68,51 +69,89 @@ $pageTitle = 'Live auctions';
 require __DIR__ . '/includes/header.php';
 ?>
 
-<div class="page-head">
-    <h1>Live auctions <span class="count"><?= $totalAuctions ?></span></h1>
+<?php
+// Name of the selected category, for the heading
+$categoryName = '';
+foreach ($categories as $c) {
+    if ($c['id'] === $categoryId) {
+        $categoryName = $c['name'];
+    }
+}
+
+// Link to a category while keeping the current search and sort
+function category_link(int $id): string
+{
+    $query = array_filter(['q' => $_GET['q'] ?? '', 'sort' => $_GET['sort'] ?? '', 'category' => $id ?: '']);
+    return BASE_URL . '/index.php' . ($query ? '?' . http_build_query($query) : '');
+}
+?>
+
+<nav class="category-bar">
+    <a href="<?= category_link(0) ?>" class="<?= $categoryId === 0 ? 'current' : '' ?>">All</a>
+    <?php foreach ($categories as $c): ?>
+        <a href="<?= category_link($c['id']) ?>" class="<?= $categoryId === $c['id'] ? 'current' : '' ?>"><?= e($c['name']) ?></a>
+    <?php endforeach; ?>
+</nav>
+
+<div class="results-head">
+    <div>
+        <h1>
+            <?php if ($search !== ''): ?>
+                Results for "<?= e($search) ?>"
+            <?php elseif ($categoryName !== ''): ?>
+                <?= e($categoryName) ?>
+            <?php else: ?>
+                Live auctions
+            <?php endif; ?>
+        </h1>
+        <p class="muted">
+            <?= $totalAuctions ?> <?= $totalAuctions === 1 ? 'auction' : 'auctions' ?>
+            <?= $search !== '' && $categoryName !== '' ? 'in ' . e($categoryName) : '' ?>
+            <?php if ($search !== ''): ?>
+                &middot; <a href="<?= BASE_URL ?>/index.php<?= $categoryId ? '?category=' . $categoryId : '' ?>">Clear search</a>
+            <?php endif; ?>
+        </p>
+    </div>
+
+    <form method="get" class="sort-form">
+        <?php if ($search !== ''): ?><input type="hidden" name="q" value="<?= e($search) ?>"><?php endif; ?>
+        <?php if ($categoryId): ?><input type="hidden" name="category" value="<?= $categoryId ?>"><?php endif; ?>
+        <label for="sort">Sort by</label>
+        <select id="sort" name="sort" onchange="this.form.submit()">
+            <?php foreach ($sortOptions as $key => [$label]): ?>
+                <option value="<?= $key ?>" <?= $sort === $key ? 'selected' : '' ?>><?= $label ?></option>
+            <?php endforeach; ?>
+        </select>
+        <noscript><button type="submit" class="btn-outline">Go</button></noscript>
+    </form>
 </div>
 
-<form method="get" class="filters">
-    <input type="text" name="q" value="<?= e($search) ?>" placeholder="Search items">
-    <select name="category">
-        <option value="">All categories</option>
-        <?php foreach ($categories as $c): ?>
-            <option value="<?= $c['id'] ?>" <?= $categoryId === $c['id'] ? 'selected' : '' ?>><?= e($c['name']) ?></option>
-        <?php endforeach; ?>
-    </select>
-    <select name="sort">
-        <?php foreach ($sortOptions as $key => [$label]): ?>
-            <option value="<?= $key ?>" <?= $sort === $key ? 'selected' : '' ?>><?= $label ?></option>
-        <?php endforeach; ?>
-    </select>
-    <button type="submit" class="btn btn-small">Search</button>
-    <?php if ($search !== '' || $categoryId > 0): ?>
-        <a href="<?= BASE_URL ?>/index.php">Clear</a>
-    <?php endif; ?>
-</form>
-
 <?php if (empty($auctions)): ?>
-    <p class="empty">
+    <div class="empty">
         <?php if ($search !== '' || $categoryId > 0): ?>
-            No auctions match your search.
+            <p>No live auctions match your search.</p>
+            <a href="<?= BASE_URL ?>/index.php">See all live auctions</a>
         <?php else: ?>
-            There are no live auctions right now.
-            <?php if (is_logged_in() && !is_admin()): ?><a href="<?= BASE_URL ?>/sell.php">Sell an item</a><?php endif; ?>
+            <p>There are no live auctions right now.</p>
+            <?php if (!is_admin()): ?>
+                <a href="<?= BASE_URL ?>/sell.php" class="btn btn-small">Sell an item</a>
+            <?php endif; ?>
         <?php endif; ?>
-    </p>
+    </div>
 <?php else: ?>
     <div class="grid">
         <?php foreach ($auctions as $a): ?>
             <a href="<?= BASE_URL ?>/auction.php?id=<?= $a['id'] ?>" class="card">
                 <img src="<?= image_url($a['image']) ?>" alt="" class="card-img" loading="lazy">
                 <div class="card-body">
-                    <h3 class="card-title"><?= e($a['title']) ?></h3>
                     <p class="card-category"><?= e($a['category']) ?></p>
+                    <h3 class="card-title"><?= e($a['title']) ?></h3>
+                    <p class="card-price">
+                        <span class="price"><?= format_price($a['price']) ?></span>
+                        <span class="price-label"><?= $a['current_bid'] ? 'current bid' : 'starting price' ?></span>
+                    </p>
                     <div class="card-foot">
-                        <div>
-                            <span class="price-label"><?= $a['current_bid'] ? 'Current bid' : 'Starting price' ?></span>
-                            <span class="price"><?= format_price($a['price']) ?></span>
-                        </div>
+                        <span><?= $a['bid_count'] ? $a['bid_count'] . ($a['bid_count'] == 1 ? ' bid' : ' bids') : 'No bids' ?></span>
                         <span class="time-left" data-seconds-left="<?= (int) $a['seconds_left'] ?>"><?= time_left((int) $a['seconds_left']) ?></span>
                     </div>
                 </div>
