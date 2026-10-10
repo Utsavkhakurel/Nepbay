@@ -36,17 +36,33 @@ function nav_link(string $path, string $label, string $currentScript): string
                 <?php if ($user['role'] === 'admin'): ?>
                     <?= nav_link('/admin/index.php', 'Admin panel', $currentScript) ?>
                 <?php else: ?>
-                    <?= nav_link('/my-auctions.php', 'My auctions', $currentScript) ?>
-                    <?= nav_link('/my-bids.php', 'My bids', $currentScript) ?>
-                <?php endif; ?>
-                <?= nav_link('/profile.php', e(explode(' ', $user['name'])[0]), $currentScript) ?>
-                <form action="<?= BASE_URL ?>/logout.php" method="post" class="inline">
-                    <?= csrf_field() ?>
-                    <button type="submit" class="link-button">Log out</button>
-                </form>
-                <?php if ($user['role'] !== 'admin'): ?>
                     <a href="<?= BASE_URL ?>/sell.php" class="btn btn-small">Sell<span class="hide-sm"> an item</span></a>
                 <?php endif; ?>
+
+                <!-- Account menu: <details> opens and closes on click without any JavaScript -->
+                <details class="account-menu">
+                    <summary>
+                        <span class="avatar"><?= e(mb_strtoupper(mb_substr($user['name'], 0, 1))) ?></span>
+                        <span class="hide-sm"><?= e(explode(' ', $user['name'])[0]) ?></span>
+                    </summary>
+                    <div class="menu">
+                        <div class="menu-head">
+                            <strong><?= e($user['name']) ?></strong>
+                            <span><?= e($user['email']) ?></span>
+                        </div>
+                        <?php if ($user['role'] === 'admin'): ?>
+                            <a href="<?= BASE_URL ?>/admin/index.php">Admin panel</a>
+                        <?php else: ?>
+                            <a href="<?= BASE_URL ?>/my-auctions.php">My auctions</a>
+                            <a href="<?= BASE_URL ?>/my-bids.php">My bids</a>
+                        <?php endif; ?>
+                        <a href="<?= BASE_URL ?>/profile.php">Profile &amp; password</a>
+                        <form action="<?= BASE_URL ?>/logout.php" method="post">
+                            <?= csrf_field() ?>
+                            <button type="submit">Log out</button>
+                        </form>
+                    </div>
+                </details>
             <?php else: ?>
                 <?= nav_link('/login.php', 'Log in', $currentScript) ?>
                 <a href="<?= BASE_URL ?>/register.php" class="btn btn-small">Register</a>
