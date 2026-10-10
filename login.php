@@ -1,8 +1,15 @@
 <?php
 require __DIR__ . '/includes/init.php';
 
+// Page to return to after logging in, e.g. "/auction.php?id=5".
+// It must start with "/" so it always stays on this site.
+$redirectTo = $_GET['redirect'] ?? '';
+if (!str_starts_with($redirectTo, '/')) {
+    $redirectTo = '';
+}
+
 if (is_logged_in()) {
-    redirect(is_admin() ? '/admin/index.php' : '/index.php');
+    redirect($redirectTo ?: (is_admin() ? '/admin/index.php' : '/index.php'));
 }
 
 $error = '';
@@ -26,7 +33,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     } else {
         login_user((int) $user['id']);
         set_flash('success', 'Welcome back, ' . $user['name'] . '!');
-        redirect($user['role'] === 'admin' ? '/admin/index.php' : '/index.php');
+        redirect($redirectTo ?: ($user['role'] === 'admin' ? '/admin/index.php' : '/index.php'));
     }
 }
 

@@ -105,6 +105,9 @@ input[type="file"] { font: inherit; }
 .thumb { width: 48px; height: 48px; object-fit: cover; border-radius: 6px; border: 1px solid var(--border); }
 .badge-ended   { background: #eef0f3; color: var(--muted); }
 .badge-removed { background: var(--error-bg); color: var(--error-text); }
+.badge-winning, .badge-won { background: var(--success-bg); color: var(--success-text); }
+.badge-outbid  { background: #fff4e0; color: #9a5b00; }
+.badge-lost    { background: #eef0f3; color: var(--muted); }
 
 /* ---------- Auction cards (home page) ---------- */
 .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 20px; }
@@ -148,6 +151,12 @@ input[type="file"] { font: inherit; }
 .details dt { color: var(--muted); }
 .details .time-left { font-size: inherit; }
 .note { margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--border); color: var(--muted); }
+.note.winning { color: var(--success-text); font-weight: 600; }
+.bid-form { margin-top: 14px; padding-top: 6px; border-top: 1px solid var(--border); }
+.bid-row { display: flex; gap: 10px; }
+.bid-row input { flex: 1; }
+.bid-row .btn { white-space: nowrap; }
+.bid-form .hint { margin-top: 6px; margin-bottom: 0; }
 .seller { margin-top: 16px; display: flex; flex-direction: column; }
 .description { margin-top: 32px; max-width: 760px; }
 .description h2 { font-size: 1.15rem; margin-bottom: 8px; }

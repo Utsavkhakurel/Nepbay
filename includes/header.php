@@ -22,6 +22,7 @@ $flash = get_flash();
                 <?php else: ?>
                     <a href="<?= BASE_URL ?>/sell.php">Sell</a>
                     <a href="<?= BASE_URL ?>/my-auctions.php">My auctions</a>
+                    <a href="<?= BASE_URL ?>/my-bids.php">My bids</a>
                 <?php endif; ?>
                 <span class="nav-user">Hi, <?= e($user['name']) ?></span>
                 <form action="<?= BASE_URL ?>/logout.php" method="post" class="inline">

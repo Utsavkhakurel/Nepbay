@@ -76,3 +76,15 @@ CREATE TABLE IF NOT EXISTS auctions (
     FOREIGN KEY (winner_id)  REFERENCES users(id),
     INDEX (status, end_time)
 ) ENGINE=InnoDB;
+
+-- Every bid placed (the highest one for an auction is also copied to auctions.current_bid)
+CREATE TABLE IF NOT EXISTS bids (
+    id         INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    auction_id INT UNSIGNED NOT NULL,
+    user_id    INT UNSIGNED NOT NULL,
+    amount     DECIMAL(12,2) NOT NULL,
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (auction_id) REFERENCES auctions(id) ON DELETE CASCADE,
+    FOREIGN KEY (user_id)    REFERENCES users(id),
+    INDEX (auction_id, amount)
+) ENGINE=InnoDB;

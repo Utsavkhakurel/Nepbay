@@ -52,7 +52,9 @@ function require_login(): void
 {
     if (!is_logged_in()) {
         set_flash('error', 'Please log in to continue.');
-        redirect('/login.php');
+        // Come back to this page after logging in
+        $currentPage = substr($_SERVER['REQUEST_URI'], strlen(BASE_URL));
+        redirect('/login.php?redirect=' . urlencode($currentPage));
     }
 }
 

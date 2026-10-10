@@ -53,6 +53,39 @@ function time_left(int $seconds): string
     return "{$minutes}m " . ($seconds % 60) . 's left';
 }
 
+// ---- Bidding rules ----
+
+// How much a new bid must be above the current bid (bigger steps for expensive items)
+function bid_increment(float $currentBid): int
+{
+    if ($currentBid < 1000) {
+        return 10;
+    }
+    if ($currentBid < 10000) {
+        return 100;
+    }
+    if ($currentBid < 100000) {
+        return 500;
+    }
+    return 1000;
+}
+
+// The lowest bid allowed right now: the starting price if nobody has bid yet,
+// otherwise the current bid plus the increment.
+function minimum_bid($startingPrice, $currentBid): float
+{
+    if ($currentBid === null) {
+        return (float) $startingPrice;
+    }
+    return (float) $currentBid + bid_increment((float) $currentBid);
+}
+
+// Hide bidder names in public bid history: "Sita Sharma" -> "S***a"
+function mask_name(string $name): string
+{
+    return mb_substr($name, 0, 1) . '***' . mb_substr($name, -1);
+}
+
 // Link to another page of a list while keeping the current search and filters
 function page_link(int $pageNumber): string
 {
