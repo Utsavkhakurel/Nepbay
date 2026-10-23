@@ -17,6 +17,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($target && in_array($action, ['block', 'unblock'], true)) {
         $newStatus = $action === 'block' ? 'blocked' : 'active';
         db()->prepare('UPDATE users SET status = ? WHERE id = ?')->execute([$newStatus, $userId]);
+        refresh_current_bids($userId);
         set_flash('success', $target['name'] . ' has been ' . ($action === 'block' ? 'blocked.' : 'unblocked.'));
     }
 

@@ -6,7 +6,7 @@ $stmt = db()->prepare("
            TIMESTAMPDIFF(SECOND, NOW(), a.end_time) AS seconds_left,
            p.id AS product_id, p.title, p.description, p.seller_id,
            c.id AS category_id, c.name AS category,
-           u.name AS seller_name, u.email AS seller_email, u.phone AS seller_phone, u.created_at AS seller_since,
+           u.name AS seller_name, u.status AS seller_status, u.email AS seller_email, u.phone AS seller_phone, u.created_at AS seller_since,
            w.name AS winner_name, w.email AS winner_email, w.phone AS winner_phone
     FROM auctions a
     JOIN products p   ON p.id = a.product_id
@@ -32,14 +32,14 @@ $stmt = db()->prepare('SELECT file_name FROM product_images WHERE product_id = ?
 $stmt->execute([$auction['product_id']]);
 $images = $stmt->fetchAll(PDO::FETCH_COLUMN);
 
-// Bid history, highest first
-$stmt = db()->prepare('
+// Bid history, highest first (bids from blocked users don't count)
+$stmt = db()->prepare("
     SELECT b.user_id, b.amount, b.created_at, u.name
     FROM bids b
     JOIN users u ON u.id = b.user_id
-    WHERE b.auction_id = ?
+    WHERE b.auction_id = ? AND u.status = 'active'
     ORDER BY b.amount DESC
-');
+");
 $stmt->execute([$auction['id']]);
 $bids = $stmt->fetchAll();
 
@@ -49,6 +49,7 @@ $userId          = is_logged_in() ? current_user()['id'] : 0;
 $isOwner         = $userId === (int) $auction['seller_id'];
 $highestBidderId = $bids ? (int) $bids[0]['user_id'] : 0;
 $winnerId        = (int) $auction['winner_id'];
+$sellerBlocked   = $auction['seller_status'] === 'blocked';
 $minimumBid      = minimum_bid($auction['starting_price'], $auction['current_bid'], $auction['bid_increment']);
 
 // This user's highest bid, if they have bid here (bids are sorted highest first)
@@ -140,6 +141,8 @@ require __DIR__ . '/includes/header.php';
                 <p class="note">Won by <?= e($auction['winner_name']) ?> (<?= e($auction['winner_email']) ?>).</p>
             <?php elseif ($hasEnded): ?>
                 <p class="note">This auction has ended.</p>
+            <?php elseif ($sellerBlocked): ?>
+                <p class="note">Bidding is closed because the seller's account has been suspended.</p>
             <?php elseif ($isOwner): ?>
                 <p class="note">
                     This is your auction.

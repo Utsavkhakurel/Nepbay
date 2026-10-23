@@ -39,8 +39,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $pdo = db();
             $pdo->beginTransaction();
             try {
-                $pdo->prepare('INSERT INTO products (seller_id, category_id, title, description) VALUES (?, ?, ?, ?)')
-                    ->execute([current_user()['id'], $categoryId, $title, $description]);
+                $pdo->prepare('INSERT INTO products (seller_id, category_id, title, description, ip_address) VALUES (?, ?, ?, ?, ?)')
+                    ->execute([current_user()['id'], $categoryId, $title, $description, $_SERVER['REMOTE_ADDR'] ?? null]);
                 $productId = (int) $pdo->lastInsertId();
 
                 $stmt = $pdo->prepare('INSERT INTO product_images (product_id, file_name, sort_order) VALUES (?, ?, ?)');

@@ -345,6 +345,8 @@ tr.editing td { background: #fffbea; }
 .filters { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-bottom: 16px; }
 .filters input, .filters select { width: auto; padding: 7px 10px; font-size: 0.95rem; }
 .filters input { width: 240px; }
+.filters label { display: flex; align-items: center; gap: 6px; margin: 0; font-weight: normal; }
+.filters input[type="checkbox"] { width: auto; }
 
 .empty {
     background: var(--white); border: 1px solid var(--border); border-radius: var(--radius-lg);
@@ -422,7 +424,7 @@ tr.editing td { background: #fffbea; }
     .admin-sidebar { flex-direction: row; flex-wrap: wrap; gap: 4px; }
     .sidebar-title { display: none; }
     .stats { grid-template-columns: repeat(2, 1fr); }
-    .filters input { width: 100%; }
+    .filters input[type="text"] { width: 100%; }
     .form-row, .form-row.half { grid-template-columns: 1fr; gap: 0; }
     .report-columns { grid-template-columns: 1fr; gap: 0; }
     .footer-top { flex-wrap: wrap; gap: 28px 48px; }

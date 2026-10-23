@@ -66,18 +66,35 @@ function minimum_bid($startingPrice, $currentBid, $increment): float
 }
 
 // Closes every auction whose time is up and saves the highest bidder as the winner
-// (winner stays NULL if nobody bid). PHP can't run tasks in the background, so this
-// is called at the start of every page load instead. It is one quick query.
+// (winner stays NULL if nobody bid). Bids from blocked users don't count.
+// PHP can't run tasks in the background, so this is called at the start of
+// every page load instead. It is one quick query.
 function close_ended_auctions(): void
 {
     db()->exec("
         UPDATE auctions
         SET status = 'ended',
-            winner_id = (SELECT user_id FROM bids
-                         WHERE bids.auction_id = auctions.id
-                         ORDER BY amount DESC LIMIT 1)
+            winner_id = (SELECT b.user_id FROM bids b
+                         JOIN users u ON u.id = b.user_id
+                         WHERE b.auction_id = auctions.id AND u.status = 'active'
+                         ORDER BY b.amount DESC LIMIT 1)
         WHERE status = 'active' AND end_time <= NOW()
     ");
+}
+
+// Recalculates current_bid on the live auctions a user has bid on, counting only
+// bids from active users. Called when that user is blocked or unblocked, so a
+// blocked user's bids stop counting (and count again if they are unblocked).
+function refresh_current_bids(int $userId): void
+{
+    db()->prepare("
+        UPDATE auctions
+        SET current_bid = (SELECT MAX(b.amount) FROM bids b
+                           JOIN users u ON u.id = b.user_id
+                           WHERE b.auction_id = auctions.id AND u.status = 'active')
+        WHERE status = 'active'
+          AND id IN (SELECT auction_id FROM bids WHERE user_id = ?)
+    ")->execute([$userId]);
 }
 
 // One word describing an auction for the admin pages: live, sold, unsold or removed

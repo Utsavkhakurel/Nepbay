@@ -47,6 +47,7 @@ CREATE TABLE IF NOT EXISTS products (
     category_id INT UNSIGNED NOT NULL,
     title       VARCHAR(150) NOT NULL,
     description TEXT NOT NULL,
+    ip_address  VARCHAR(45) NULL,                 -- seller's IP when listing (to spot shill bidding)
     created_at  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (seller_id)   REFERENCES users(id),
     FOREIGN KEY (category_id) REFERENCES categories(id)
@@ -84,6 +85,7 @@ CREATE TABLE IF NOT EXISTS bids (
     auction_id INT UNSIGNED NOT NULL,
     user_id    INT UNSIGNED NOT NULL,
     amount     DECIMAL(12,2) NOT NULL,
+    ip_address VARCHAR(45) NULL,                  -- bidder's IP (to spot shill bidding)
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (auction_id) REFERENCES auctions(id) ON DELETE CASCADE,
     FOREIGN KEY (user_id)    REFERENCES users(id),

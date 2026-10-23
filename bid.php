@@ -17,7 +17,8 @@ $pdo->beginTransaction();
 // FOR UPDATE locks this auction row until we commit. If two people bid at the
 // same moment, the second one waits here and then sees the first one's bid.
 $stmt = $pdo->prepare("
-    SELECT a.id, a.starting_price, a.bid_increment, a.current_bid, a.end_time, a.status, p.seller_id
+    SELECT a.id, a.starting_price, a.bid_increment, a.current_bid, a.end_time, a.status, p.seller_id,
+           (SELECT status FROM users WHERE id = p.seller_id) AS seller_status
     FROM auctions a
     JOIN products p ON p.id = a.product_id
     WHERE a.id = ?
@@ -26,8 +27,13 @@ $stmt = $pdo->prepare("
 $stmt->execute([$auctionId]);
 $auction = $stmt->fetch();
 
-// Who is winning right now?
-$stmt = $pdo->prepare('SELECT user_id FROM bids WHERE auction_id = ? ORDER BY amount DESC LIMIT 1');
+// Who is winning right now? (bids from blocked users don't count)
+$stmt = $pdo->prepare("
+    SELECT b.user_id FROM bids b
+    JOIN users u ON u.id = b.user_id
+    WHERE b.auction_id = ? AND u.status = 'active'
+    ORDER BY b.amount DESC LIMIT 1
+");
 $stmt->execute([$auctionId]);
 $highestBidderId = $stmt->fetchColumn();
 
@@ -37,6 +43,8 @@ if (!$auction || $auction['status'] === 'removed') {
     $error = 'This auction does not exist.';
 } elseif ($auction['status'] !== 'active' || strtotime($auction['end_time']) <= time()) {
     $error = 'This auction has already ended.';
+} elseif ($auction['seller_status'] === 'blocked') {
+    $error = 'Bidding is closed because the seller\'s account has been suspended.';
 } elseif ($user['role'] === 'admin') {
     $error = 'Admins cannot place bids.';
 } elseif ((int) $auction['seller_id'] === $user['id']) {
@@ -58,8 +66,8 @@ if ($error) {
     redirect('/auction.php?id=' . $auctionId);
 }
 
-$pdo->prepare('INSERT INTO bids (auction_id, user_id, amount) VALUES (?, ?, ?)')
-    ->execute([$auctionId, $user['id'], $amount]);
+$pdo->prepare('INSERT INTO bids (auction_id, user_id, amount, ip_address) VALUES (?, ?, ?, ?)')
+    ->execute([$auctionId, $user['id'], $amount, $_SERVER['REMOTE_ADDR'] ?? null]);
 $pdo->prepare('UPDATE auctions SET current_bid = ? WHERE id = ?')
     ->execute([$amount, $auctionId]);
 $pdo->commit();
