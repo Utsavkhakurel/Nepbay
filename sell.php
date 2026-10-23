@@ -16,11 +16,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $categoryId  = (int) ($_POST['category_id'] ?? 0);
         $description = trim($_POST['description'] ?? '');
         $price       = trim($_POST['starting_price'] ?? '');
+        $increment   = trim($_POST['bid_increment'] ?? '');
         $days        = (int) ($_POST['duration'] ?? 0);
         $images      = uploaded_files('images');
 
         // ---- Validation ----
-        $errors = listing_errors($title, $categoryId, $description, $price, $categories);
+        $errors = listing_errors($title, $categoryId, $description, $price, $increment, $categories);
         if (!in_array($days, AUCTION_DURATIONS)) {
             $errors['duration'] = 'Please choose how long the auction should run.';
         }
@@ -49,8 +50,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                 $startTime = date('Y-m-d H:i:s');
                 $endTime   = date('Y-m-d H:i:s', strtotime("+$days days"));
-                $pdo->prepare('INSERT INTO auctions (product_id, starting_price, start_time, end_time) VALUES (?, ?, ?, ?)')
-                    ->execute([$productId, $price, $startTime, $endTime]);
+                $pdo->prepare('INSERT INTO auctions (product_id, starting_price, bid_increment, start_time, end_time) VALUES (?, ?, ?, ?, ?)')
+                    ->execute([$productId, $price, $increment, $startTime, $endTime]);
 
                 $pdo->commit();
             } catch (Exception $e) {
@@ -107,15 +108,21 @@ require __DIR__ . '/includes/header.php';
                 <?php if (isset($errors['starting_price'])): ?><p class="field-error"><?= e($errors['starting_price']) ?></p><?php endif; ?>
             </div>
             <div>
-                <label for="duration">Auction length</label>
-                <select id="duration" name="duration" required>
-                    <?php foreach (AUCTION_DURATIONS as $d): ?>
-                        <option value="<?= $d ?>" <?= (int) ($_POST['duration'] ?? 7) === $d ? 'selected' : '' ?>><?= $d ?> <?= $d === 1 ? 'day' : 'days' ?></option>
-                    <?php endforeach; ?>
-                </select>
-                <?php if (isset($errors['duration'])): ?><p class="field-error"><?= e($errors['duration']) ?></p><?php endif; ?>
+                <label for="bid_increment">Bid increment (Rs.)</label>
+                <input type="number" id="bid_increment" name="bid_increment" value="<?= e($_POST['bid_increment'] ?? '10') ?>"
+                       min="1" step="1" inputmode="numeric" aria-describedby="increment-hint" required>
+                <p class="hint" id="increment-hint">Each new bid must be at least this much higher.</p>
+                <?php if (isset($errors['bid_increment'])): ?><p class="field-error"><?= e($errors['bid_increment']) ?></p><?php endif; ?>
             </div>
         </div>
+
+        <label for="duration">Auction length</label>
+        <select id="duration" name="duration" required>
+            <?php foreach (AUCTION_DURATIONS as $d): ?>
+                <option value="<?= $d ?>" <?= (int) ($_POST['duration'] ?? 7) === $d ? 'selected' : '' ?>><?= $d ?> <?= $d === 1 ? 'day' : 'days' ?></option>
+            <?php endforeach; ?>
+        </select>
+        <?php if (isset($errors['duration'])): ?><p class="field-error"><?= e($errors['duration']) ?></p><?php endif; ?>
 
         <label for="images">Photos</label>
         <p class="hint">Up to <?= MAX_IMAGES ?> photos, JPG, PNG or WEBP, 2 MB each. The first photo is used as the cover.</p>

@@ -55,29 +55,14 @@ function time_left(int $seconds): string
 
 // ---- Bidding rules ----
 
-// How much a new bid must be above the current bid (bigger steps for expensive items)
-function bid_increment(float $currentBid): int
-{
-    if ($currentBid < 1000) {
-        return 10;
-    }
-    if ($currentBid < 10000) {
-        return 100;
-    }
-    if ($currentBid < 100000) {
-        return 500;
-    }
-    return 1000;
-}
-
 // The lowest bid allowed right now: the starting price if nobody has bid yet,
-// otherwise the current bid plus the increment.
-function minimum_bid($startingPrice, $currentBid): float
+// otherwise the current bid plus the increment the seller chose.
+function minimum_bid($startingPrice, $currentBid, $increment): float
 {
     if ($currentBid === null) {
         return (float) $startingPrice;
     }
-    return (float) $currentBid + bid_increment((float) $currentBid);
+    return (float) $currentBid + (float) $increment;
 }
 
 // Closes every auction whose time is up and saves the highest bidder as the winner
@@ -150,7 +135,7 @@ function uploaded_files(string $field): array
 
 // Checks the listing fields shared by sell.php and edit-auction.php.
 // Returns an array of error messages keyed by field name (empty = all fine).
-function listing_errors(string $title, int $categoryId, string $description, string $price, array $categories): array
+function listing_errors(string $title, int $categoryId, string $description, string $price, string $increment, array $categories): array
 {
     $errors = [];
     if (mb_strlen($title) < 5 || mb_strlen($title) > 150) {
@@ -164,6 +149,9 @@ function listing_errors(string $title, int $categoryId, string $description, str
     }
     if (!ctype_digit($price) || $price < 10 || $price > 100000000) {
         $errors['starting_price'] = 'Starting price must be a whole number between Rs. 10 and Rs. 10,00,00,000.';
+    }
+    if (!ctype_digit($increment) || $increment < 1 || $increment > 10000000) {
+        $errors['bid_increment'] = 'Bid increment must be a whole number between Rs. 1 and Rs. 1,00,00,000.';
     }
     return $errors;
 }

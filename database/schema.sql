@@ -66,6 +66,7 @@ CREATE TABLE IF NOT EXISTS auctions (
     id             INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     product_id     INT UNSIGNED NOT NULL UNIQUE,
     starting_price DECIMAL(12,2) NOT NULL,
+    bid_increment  DECIMAL(12,2) NOT NULL DEFAULT 10, -- set by the seller: each new bid must beat the current one by at least this
     current_bid    DECIMAL(12,2) NULL,              -- NULL until someone bids
     start_time     DATETIME NOT NULL,
     end_time       DATETIME NOT NULL,

@@ -2,7 +2,7 @@
 require __DIR__ . '/includes/init.php';
 
 $stmt = db()->prepare("
-    SELECT a.id, a.starting_price, a.current_bid, a.start_time, a.end_time, a.status, a.winner_id,
+    SELECT a.id, a.starting_price, a.bid_increment, a.current_bid, a.start_time, a.end_time, a.status, a.winner_id,
            TIMESTAMPDIFF(SECOND, NOW(), a.end_time) AS seconds_left,
            p.id AS product_id, p.title, p.description, p.seller_id,
            c.id AS category_id, c.name AS category,
@@ -49,7 +49,7 @@ $userId          = is_logged_in() ? current_user()['id'] : 0;
 $isOwner         = $userId === (int) $auction['seller_id'];
 $highestBidderId = $bids ? (int) $bids[0]['user_id'] : 0;
 $winnerId        = (int) $auction['winner_id'];
-$minimumBid      = minimum_bid($auction['starting_price'], $auction['current_bid']);
+$minimumBid      = minimum_bid($auction['starting_price'], $auction['current_bid'], $auction['bid_increment']);
 
 // This user's highest bid, if they have bid here (bids are sorted highest first)
 $myBid = null;
@@ -176,6 +176,8 @@ require __DIR__ . '/includes/header.php';
                     <dt>Starting price</dt>
                     <dd><?= format_price($auction['starting_price']) ?></dd>
                 <?php endif; ?>
+                <dt>Bid increment</dt>
+                <dd><?= format_price($auction['bid_increment']) ?></dd>
                 <dt>Bids</dt>
                 <dd><?= count($bids) ? '<a href="#bids">' . count($bids) . '</a>' : '0' ?></dd>
                 <dt><?= $hasEnded ? 'Ended on' : 'Ends on' ?></dt>

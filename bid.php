@@ -17,7 +17,7 @@ $pdo->beginTransaction();
 // FOR UPDATE locks this auction row until we commit. If two people bid at the
 // same moment, the second one waits here and then sees the first one's bid.
 $stmt = $pdo->prepare("
-    SELECT a.id, a.starting_price, a.current_bid, a.end_time, a.status, p.seller_id
+    SELECT a.id, a.starting_price, a.bid_increment, a.current_bid, a.end_time, a.status, p.seller_id
     FROM auctions a
     JOIN products p ON p.id = a.product_id
     WHERE a.id = ?
@@ -46,7 +46,7 @@ if (!$auction || $auction['status'] === 'removed') {
 } elseif (!ctype_digit($amount) || $amount > 1000000000) {
     $error = 'Please enter your bid as a whole number of rupees.';
 } else {
-    $minimum = minimum_bid($auction['starting_price'], $auction['current_bid']);
+    $minimum = minimum_bid($auction['starting_price'], $auction['current_bid'], $auction['bid_increment']);
     if ($amount < $minimum) {
         $error = 'Your bid must be at least ' . format_price($minimum) . '.';
     }

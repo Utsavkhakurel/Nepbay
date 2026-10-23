@@ -6,7 +6,7 @@ $auctionId = (int) ($_GET['id'] ?? 0);
 
 // Only the seller can open this page
 $stmt = db()->prepare("
-    SELECT a.id, a.product_id, a.starting_price, a.current_bid, a.status, a.end_time,
+    SELECT a.id, a.product_id, a.starting_price, a.bid_increment, a.current_bid, a.status, a.end_time,
            p.title, p.description, p.category_id
     FROM auctions a
     JOIN products p ON p.id = a.product_id
@@ -51,6 +51,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $categoryId  = (int) ($_POST['category_id'] ?? 0);
         $description = trim($_POST['description'] ?? '');
         $price       = trim($_POST['starting_price'] ?? '');
+        $increment   = trim($_POST['bid_increment'] ?? '');
         $newImages   = uploaded_files('images');
         $removeIds   = array_map('intval', $_POST['remove_images'] ?? []);
 
@@ -64,7 +65,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
         }
 
-        $errors = listing_errors($title, $categoryId, $description, $price, $categories);
+        $errors = listing_errors($title, $categoryId, $description, $price, $increment, $categories);
         $imageError = image_upload_error($newImages, count($keptImages));
         if ($imageError) {
             $errors['images'] = $imageError;
@@ -88,8 +89,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             $pdo->prepare('UPDATE products SET title = ?, category_id = ?, description = ? WHERE id = ?')
                 ->execute([$title, $categoryId, $description, $auction['product_id']]);
-            $pdo->prepare('UPDATE auctions SET starting_price = ? WHERE id = ?')
-                ->execute([$price, $auctionId]);
+            $pdo->prepare('UPDATE auctions SET starting_price = ?, bid_increment = ? WHERE id = ?')
+                ->execute([$price, $increment, $auctionId]);
 
             $deleteStmt = $pdo->prepare('DELETE FROM product_images WHERE id = ?');
             foreach ($removedImages as $image) {
@@ -118,6 +119,7 @@ $title       = $isPost ? ($_POST['title'] ?? '')                : $auction['titl
 $categoryId  = $isPost ? (int) ($_POST['category_id'] ?? 0)     : $auction['category_id'];
 $description = $isPost ? ($_POST['description'] ?? '')          : $auction['description'];
 $price       = $isPost ? ($_POST['starting_price'] ?? '')       : (int) $auction['starting_price'];
+$increment   = $isPost ? ($_POST['bid_increment'] ?? '')        : (int) $auction['bid_increment'];
 $removeIds   = $isPost ? array_map('intval', $_POST['remove_images'] ?? []) : [];
 
 $pageTitle = 'Edit listing';
@@ -158,10 +160,14 @@ require __DIR__ . '/includes/header.php';
                 <?php if (isset($errors['starting_price'])): ?><p class="field-error"><?= e($errors['starting_price']) ?></p><?php endif; ?>
             </div>
             <div>
-                <label>Ends on</label>
-                <input type="text" value="<?= format_datetime($auction['end_time']) ?>" disabled>
+                <label for="bid_increment">Bid increment (Rs.)</label>
+                <input type="number" id="bid_increment" name="bid_increment" value="<?= e((string) $increment) ?>" min="1" step="1" inputmode="numeric" required>
+                <?php if (isset($errors['bid_increment'])): ?><p class="field-error"><?= e($errors['bid_increment']) ?></p><?php endif; ?>
             </div>
         </div>
+
+        <label>Ends on</label>
+        <input type="text" value="<?= format_datetime($auction['end_time']) ?>" disabled>
 
         <label>Current photos</label>
         <p class="hint">Tick the photos you want to remove.</p>
