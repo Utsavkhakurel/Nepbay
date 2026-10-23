@@ -30,17 +30,20 @@ require __DIR__ . '/includes/header.php';
 </div>
 
 <?php if (empty($auctions)): ?>
-    <p class="empty">You haven't placed any bids yet. <a href="<?= BASE_URL ?>/index.php">Browse live auctions</a></p>
+    <div class="empty">
+        <p>You haven't placed any bids yet.</p>
+        <a href="<?= BASE_URL ?>/index.php">Browse live auctions</a>
+    </div>
 <?php else: ?>
     <div class="table-wrap">
         <table>
             <thead>
                 <tr>
                     <th>Item</th>
+                    <th>Status</th>
                     <th>Your highest bid</th>
                     <th>Current bid</th>
                     <th>Time left</th>
-                    <th>Status</th>
                 </tr>
             </thead>
             <tbody>
@@ -64,6 +67,7 @@ require __DIR__ . '/includes/header.php';
                                 <a href="<?= BASE_URL ?>/auction.php?id=<?= $a['id'] ?>"><?= e($a['title']) ?></a>
                             </div>
                         </td>
+                        <td><span class="badge badge-<?= $status ?>"><?= ucfirst($status) ?></span></td>
                         <td><?= format_price($a['my_bid']) ?></td>
                         <td><?= format_price($a['current_bid']) ?></td>
                         <td>
@@ -73,7 +77,6 @@ require __DIR__ . '/includes/header.php';
                                 <span class="time-left" data-seconds-left="<?= (int) $a['seconds_left'] ?>"><?= time_left((int) $a['seconds_left']) ?></span>
                             <?php endif; ?>
                         </td>
-                        <td><span class="badge badge-<?= $status ?>"><?= ucfirst($status) ?></span></td>
                     </tr>
                 <?php endforeach; ?>
             </tbody>

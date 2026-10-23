@@ -72,23 +72,23 @@ require __DIR__ . '/includes/header.php';
         <?= csrf_field() ?>
 
         <label for="name">Full name</label>
-        <input type="text" id="name" name="name" value="<?= old('name') ?>" required maxlength="100">
+        <input type="text" id="name" name="name" value="<?= old('name') ?>" autocomplete="name" required maxlength="100">
         <?php if (isset($errors['name'])): ?><p class="field-error"><?= e($errors['name']) ?></p><?php endif; ?>
 
         <label for="email">Email</label>
-        <input type="email" id="email" name="email" value="<?= old('email') ?>" required maxlength="150">
+        <input type="email" id="email" name="email" value="<?= old('email') ?>" autocomplete="email" required maxlength="150">
         <?php if (isset($errors['email'])): ?><p class="field-error"><?= e($errors['email']) ?></p><?php endif; ?>
 
         <label for="phone">Phone <span class="muted">(optional)</span></label>
-        <input type="tel" id="phone" name="phone" value="<?= old('phone') ?>" maxlength="20">
+        <input type="tel" id="phone" name="phone" value="<?= old('phone') ?>" maxlength="20" autocomplete="tel">
         <?php if (isset($errors['phone'])): ?><p class="field-error"><?= e($errors['phone']) ?></p><?php endif; ?>
 
         <label for="password">Password</label>
-        <input type="password" id="password" name="password" required minlength="8">
+        <input type="password" id="password" name="password" required minlength="8" autocomplete="new-password">
         <?php if (isset($errors['password'])): ?><p class="field-error"><?= e($errors['password']) ?></p><?php endif; ?>
 
         <label for="confirm_password">Confirm password</label>
-        <input type="password" id="confirm_password" name="confirm_password" required minlength="8">
+        <input type="password" id="confirm_password" name="confirm_password" required minlength="8" autocomplete="new-password">
         <?php if (isset($errors['confirm_password'])): ?><p class="field-error"><?= e($errors['confirm_password']) ?></p><?php endif; ?>
 
         <button type="submit" class="btn btn-full">Register</button>

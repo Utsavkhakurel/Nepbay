@@ -1,13 +1,24 @@
 <?php
-// Site-wide settings. Change these if your XAMPP setup is different.
+// Site-wide settings. Local XAMPP values are used on localhost,
+// InfinityFree values everywhere else.
 
-define('DB_HOST', 'localhost');
-define('DB_NAME', 'nepbay');
-define('DB_USER', 'root');
-define('DB_PASS', '');
+$isLocal = in_array($_SERVER['HTTP_HOST'] ?? 'localhost', ['localhost', '127.0.0.1']);
+
+if ($isLocal) {
+    define('DB_HOST', 'localhost');
+    define('DB_NAME', 'nepbay');
+    define('DB_USER', 'root');
+    define('DB_PASS', '');
+    define('BASE_URL', '/Nepbay');   // http://localhost/Nepbay
+} else {
+    define('DB_HOST', 'sql301.infinityfree.com');
+    define('DB_NAME', 'if0_43252939_nepbay');
+    define('DB_USER', 'if0_43252939');
+    define('DB_PASS', 'PUT_YOUR_VPANEL_PASSWORD_HERE');
+    define('BASE_URL', '');          // https://nepbay.ifree.page
+}
 
 define('SITE_NAME', 'Nepbay');
-define('BASE_URL', '/Nepbay');   // URL path of the project: http://localhost/Nepbay
 
 date_default_timezone_set('Asia/Kathmandu');
 

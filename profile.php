@@ -92,7 +92,7 @@ require __DIR__ . '/includes/header.php';
         <input type="hidden" name="action" value="details">
 
         <label for="name">Full name</label>
-        <input type="text" id="name" name="name" value="<?= e($name) ?>" maxlength="100" required>
+        <input type="text" id="name" name="name" value="<?= e($name) ?>" maxlength="100" autocomplete="name" required>
         <?php if (isset($detailErrors['name'])): ?><p class="field-error"><?= e($detailErrors['name']) ?></p><?php endif; ?>
 
         <label for="email">Email</label>
@@ -100,7 +100,7 @@ require __DIR__ . '/includes/header.php';
         <p class="hint">Your email is used to log in and can't be changed.</p>
 
         <label for="phone">Phone</label>
-        <input type="tel" id="phone" name="phone" value="<?= e($phone) ?>" maxlength="20">
+        <input type="tel" id="phone" name="phone" value="<?= e($phone) ?>" maxlength="20" autocomplete="tel">
         <?php if (isset($detailErrors['phone'])): ?><p class="field-error"><?= e($detailErrors['phone']) ?></p><?php endif; ?>
 
         <label for="address">Address</label>
@@ -118,15 +118,15 @@ require __DIR__ . '/includes/header.php';
         <input type="hidden" name="action" value="password">
 
         <label for="current_password">Current password</label>
-        <input type="password" id="current_password" name="current_password" required>
+        <input type="password" id="current_password" name="current_password" autocomplete="current-password" required>
         <?php if (isset($passwordErrors['current_password'])): ?><p class="field-error"><?= e($passwordErrors['current_password']) ?></p><?php endif; ?>
 
         <label for="new_password">New password</label>
-        <input type="password" id="new_password" name="new_password" minlength="8" required>
+        <input type="password" id="new_password" name="new_password" minlength="8" autocomplete="new-password" required>
         <?php if (isset($passwordErrors['new_password'])): ?><p class="field-error"><?= e($passwordErrors['new_password']) ?></p><?php endif; ?>
 
         <label for="confirm_password">Confirm new password</label>
-        <input type="password" id="confirm_password" name="confirm_password" minlength="8" required>
+        <input type="password" id="confirm_password" name="confirm_password" minlength="8" autocomplete="new-password" required>
         <?php if (isset($passwordErrors['confirm_password'])): ?><p class="field-error"><?= e($passwordErrors['confirm_password']) ?></p><?php endif; ?>
 
         <button type="submit" class="btn">Change password</button>

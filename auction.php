@@ -23,7 +23,7 @@ if (!$auction || ($auction['status'] === 'removed' && !is_admin())) {
     http_response_code(404);
     $pageTitle = 'Auction not found';
     require __DIR__ . '/includes/header.php';
-    echo '<p class="empty">This auction doesn\'t exist or has been removed. <a href="' . BASE_URL . '/index.php">Back to live auctions</a></p>';
+    echo '<div class="empty"><p>This auction doesn\'t exist or has been removed.</p><a href="' . BASE_URL . '/index.php">Back to live auctions</a></div>';
     require __DIR__ . '/includes/footer.php';
     exit;
 }
@@ -51,6 +51,15 @@ $highestBidderId = $bids ? (int) $bids[0]['user_id'] : 0;
 $winnerId        = (int) $auction['winner_id'];
 $minimumBid      = minimum_bid($auction['starting_price'], $auction['current_bid']);
 
+// This user's highest bid, if they have bid here (bids are sorted highest first)
+$myBid = null;
+foreach ($bids as $b) {
+    if ((int) $b['user_id'] === $userId) {
+        $myBid = $b['amount'];
+        break;
+    }
+}
+
 $pageTitle = $auction['title'];
 require __DIR__ . '/includes/header.php';
 ?>
@@ -67,7 +76,9 @@ require __DIR__ . '/includes/header.php';
         <?php if (count($images) > 1): ?>
             <div class="thumbs">
                 <?php foreach ($images as $i => $file): ?>
-                    <img src="<?= image_url($file) ?>" alt="" class="<?= $i === 0 ? 'selected' : '' ?>">
+                    <button type="button" class="<?= $i === 0 ? 'selected' : '' ?>" aria-label="Show photo <?= $i + 1 ?>">
+                        <img src="<?= image_url($file) ?>" alt="">
+                    </button>
                 <?php endforeach; ?>
             </div>
         <?php endif; ?>
@@ -78,6 +89,18 @@ require __DIR__ . '/includes/header.php';
         <h1><?= e($auction['title']) ?></h1>
 
         <div class="bid-box">
+            <div class="auction-status">
+                <?php if ($auction['status'] === 'removed'): ?>
+                    <span class="badge badge-removed">Removed</span>
+                <?php elseif ($hasEnded): ?>
+                    <span class="badge badge-ended">Ended</span>
+                    <span class="muted"><?= format_datetime($auction['end_time']) ?></span>
+                <?php else: ?>
+                    <span class="badge badge-live">Live</span>
+                    <span class="time-left" data-seconds-left="<?= $secondsLeft ?>"><?= time_left($secondsLeft) ?></span>
+                <?php endif; ?>
+            </div>
+
             <span class="price-label">
                 <?php if ($hasEnded && $auction['current_bid']): ?>
                     Winning bid
@@ -89,28 +112,9 @@ require __DIR__ . '/includes/header.php';
             </span>
             <span class="price big"><?= format_price($auction['current_bid'] ?? $auction['starting_price']) ?></span>
 
-            <dl class="details">
-                <?php if ($auction['current_bid']): ?>
-                    <dt>Starting price</dt>
-                    <dd><?= format_price($auction['starting_price']) ?></dd>
-                <?php endif; ?>
-                <dt>Bids</dt>
-                <dd><?= count($bids) ? '<a href="#bids">' . count($bids) . '</a>' : '0' ?></dd>
-                <dt>Time left</dt>
-                <dd>
-                    <?php if ($hasEnded): ?>
-                        Ended
-                    <?php else: ?>
-                        <span class="time-left" data-seconds-left="<?= $secondsLeft ?>"><?= time_left($secondsLeft) ?></span>
-                    <?php endif; ?>
-                </dd>
-                <dt><?= $hasEnded ? 'Ended on' : 'Ends on' ?></dt>
-                <dd><?= format_datetime($auction['end_time']) ?></dd>
-                <dt>Listed on</dt>
-                <dd><?= format_datetime($auction['start_time']) ?></dd>
-            </dl>
-
-            <?php if ($hasEnded && !$winnerId): ?>
+            <?php if ($auction['status'] === 'removed'): ?>
+                <?php // the red alert above already explains this ?>
+            <?php elseif ($hasEnded && !$winnerId): ?>
                 <p class="note">This auction ended with no bids.</p>
             <?php elseif ($hasEnded && $winnerId === $userId): ?>
                 <div class="result">
@@ -144,10 +148,7 @@ require __DIR__ . '/includes/header.php';
                     <?php endif; ?>
                 </p>
             <?php elseif (!is_logged_in()): ?>
-                <p class="note">
-                    <a href="<?= BASE_URL ?>/login.php?redirect=<?= urlencode('/auction.php?id=' . $auction['id']) ?>">Log in</a>
-                    to place a bid.
-                </p>
+                <a href="<?= BASE_URL ?>/login.php?redirect=<?= urlencode('/auction.php?id=' . $auction['id']) ?>" class="btn btn-full">Log in to bid</a>
             <?php elseif (is_admin()): ?>
                 <p class="note">Admins can't place bids.</p>
             <?php elseif ($highestBidderId === $userId): ?>
@@ -155,17 +156,33 @@ require __DIR__ . '/includes/header.php';
             <?php else: ?>
                 <form method="post" action="<?= BASE_URL ?>/bid.php" class="bid-form"
                       onsubmit="return confirm('Place a bid of Rs. ' + Number(this.amount.value).toLocaleString('en-IN') + '? Bids can\'t be cancelled.')">
+                    <?php if ($myBid !== null): ?>
+                        <p class="note outbid">You've been outbid. Your highest bid was <?= format_price($myBid) ?>.</p>
+                    <?php endif; ?>
                     <?= csrf_field() ?>
                     <input type="hidden" name="auction_id" value="<?= $auction['id'] ?>">
                     <label for="amount">Your bid (Rs.)</label>
                     <div class="bid-row">
                         <input type="number" id="amount" name="amount" min="<?= (int) $minimumBid ?>" step="1"
-                               value="<?= (int) $minimumBid ?>" required>
+                               value="<?= (int) $minimumBid ?>" inputmode="numeric" aria-describedby="bid-hint" required>
                         <button type="submit" class="btn">Place bid</button>
                     </div>
-                    <p class="hint">Enter <?= format_price($minimumBid) ?> or more.</p>
+                    <p class="hint" id="bid-hint">Enter <?= format_price($minimumBid) ?> or more.</p>
                 </form>
             <?php endif; ?>
+
+            <dl class="details">
+                <?php if ($auction['current_bid']): ?>
+                    <dt>Starting price</dt>
+                    <dd><?= format_price($auction['starting_price']) ?></dd>
+                <?php endif; ?>
+                <dt>Bids</dt>
+                <dd><?= count($bids) ? '<a href="#bids">' . count($bids) . '</a>' : '0' ?></dd>
+                <dt><?= $hasEnded ? 'Ended on' : 'Ends on' ?></dt>
+                <dd><?= format_datetime($auction['end_time']) ?></dd>
+                <dt>Listed on</dt>
+                <dd><?= format_datetime($auction['start_time']) ?></dd>
+            </dl>
         </div>
 
         <div class="seller">
@@ -184,7 +201,7 @@ require __DIR__ . '/includes/header.php';
 <section class="description" id="bids">
     <h2>Bid history</h2>
     <?php if (empty($bids)): ?>
-        <p class="muted">No bids yet. Be the first to bid.</p>
+        <p class="muted"><?= $hasEnded ? 'No bids were placed.' : 'No bids yet.' ?></p>
     <?php else: ?>
         <div class="table-wrap">
             <table>
@@ -219,9 +236,9 @@ require __DIR__ . '/includes/header.php';
 
 <script>
 // Clicking a thumbnail shows it as the main photo
-document.querySelectorAll('.thumbs img').forEach(function (thumb) {
+document.querySelectorAll('.thumbs button').forEach(function (thumb) {
     thumb.addEventListener('click', function () {
-        document.getElementById('main-photo').src = thumb.src;
+        document.getElementById('main-photo').src = thumb.querySelector('img').src;
         document.querySelector('.thumbs .selected').classList.remove('selected');
         thumb.classList.add('selected');
     });

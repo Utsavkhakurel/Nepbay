@@ -129,7 +129,7 @@ require __DIR__ . '/includes/header.php';
     <p class="muted">You can change this listing until someone places a bid. The end time stays the same.</p>
 
     <?php if (!empty($errors)): ?>
-        <div class="alert alert-error">Please fix the errors below.</div>
+        <div class="alert alert-error" role="alert">Please fix the errors below.</div>
     <?php endif; ?>
 
     <form method="post" enctype="multipart/form-data" novalidate>
@@ -154,7 +154,7 @@ require __DIR__ . '/includes/header.php';
         <div class="form-row half">
             <div>
                 <label for="starting_price">Starting price (Rs.)</label>
-                <input type="number" id="starting_price" name="starting_price" value="<?= e((string) $price) ?>" min="10" step="1" required>
+                <input type="number" id="starting_price" name="starting_price" value="<?= e((string) $price) ?>" min="10" step="1" inputmode="numeric" required>
                 <?php if (isset($errors['starting_price'])): ?><p class="field-error"><?= e($errors['starting_price']) ?></p><?php endif; ?>
             </div>
             <div>

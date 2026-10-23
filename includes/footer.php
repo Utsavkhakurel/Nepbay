@@ -1,22 +1,25 @@
 </main>
 
 <footer class="footer">
-    <div class="container footer-inner">
-        <div class="footer-left">
-            <a href="<?= BASE_URL ?>/index.php" class="logo"><span class="logo-mark">N</span>Nepbay</a>
-            <span>&copy; <?= date('Y') ?> &middot; Kathmandu, Nepal</span>
+    <div class="container footer-top">
+        <div class="footer-about">
+            <a href="<?= BASE_URL ?>/index.php" class="logo"><img src="<?= BASE_URL ?>/assets/img/logo.png" alt="Nepbay"></a>
+            <p>Online auctions for second-hand items in Nepal.</p>
+            <p class="copyright">&copy; <?= date('Y') ?> Nepbay &middot; Kathmandu, Nepal</p>
         </div>
-        <div class="footer-links">
-            <a href="<?= BASE_URL ?>/index.php">Home</a>
-            <?php if (!is_logged_in()): ?>
-                <a href="<?= BASE_URL ?>/login.php">Log in</a>
-                <a href="<?= BASE_URL ?>/register.php">Register</a>
-            <?php elseif (is_admin()): ?>
-                <a href="<?= BASE_URL ?>/admin/index.php">Admin panel</a>
-            <?php else: ?>
-                <a href="<?= BASE_URL ?>/sell.php">Sell an item</a>
-                <a href="<?= BASE_URL ?>/my-bids.php">My bids</a>
-            <?php endif; ?>
+
+        <div class="footer-col">
+            <p class="footer-heading">Buy</p>
+            <a href="<?= BASE_URL ?>/index.php">Live auctions</a>
+            <a href="<?= BASE_URL ?>/index.php?sort=newest">Newly listed</a>
+            <a href="<?= BASE_URL ?>/my-bids.php">My bids</a>
+        </div>
+
+        <div class="footer-col">
+            <p class="footer-heading">Sell</p>
+            <a href="<?= BASE_URL ?>/sell.php">Sell an item</a>
+            <a href="<?= BASE_URL ?>/my-auctions.php">My auctions</a>
+            <a href="<?= BASE_URL ?>/profile.php">Profile</a>
         </div>
     </div>
 </footer>

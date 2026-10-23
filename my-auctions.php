@@ -21,21 +21,23 @@ require __DIR__ . '/includes/header.php';
 
 <div class="page-head">
     <h1>My auctions</h1>
-    <a href="<?= BASE_URL ?>/sell.php" class="btn btn-small">Sell an item</a>
 </div>
 
 <?php if (empty($auctions)): ?>
-    <p class="empty">You haven't listed anything yet. <a href="<?= BASE_URL ?>/sell.php">Sell your first item</a></p>
+    <div class="empty">
+        <p>You haven't listed anything yet.</p>
+        <a href="<?= BASE_URL ?>/sell.php" class="btn btn-small">Sell an item</a>
+    </div>
 <?php else: ?>
     <div class="table-wrap">
         <table>
             <thead>
                 <tr>
                     <th>Item</th>
+                    <th>Status</th>
                     <th>Starting price</th>
                     <th>Highest bid</th>
                     <th>Ends</th>
-                    <th>Status</th>
                     <th></th>
                 </tr>
             </thead>
@@ -47,7 +49,7 @@ require __DIR__ . '/includes/header.php';
                     } elseif ($a['status'] === 'ended') {
                         $status = $a['winner_id'] ? 'sold' : 'unsold';
                     } else {
-                        $status = 'active';
+                        $status = 'live';
                     }
                     $noBids = $a['current_bid'] === null;
                     ?>
@@ -58,12 +60,12 @@ require __DIR__ . '/includes/header.php';
                                 <a href="<?= BASE_URL ?>/auction.php?id=<?= $a['id'] ?>"><?= e($a['title']) ?></a>
                             </div>
                         </td>
+                        <td><span class="badge badge-<?= $status ?>"><?= ucfirst($status) ?></span></td>
                         <td><?= format_price($a['starting_price']) ?></td>
                         <td><?= $a['current_bid'] ? format_price($a['current_bid']) : '<span class="muted">No bids</span>' ?></td>
                         <td><?= format_datetime($a['end_time']) ?></td>
-                        <td><span class="badge badge-<?= $status ?>"><?= ucfirst($status) ?></span></td>
                         <td class="actions">
-                            <?php if ($status === 'active' && $noBids): ?>
+                            <?php if ($status === 'live' && $noBids): ?>
                                 <a href="<?= BASE_URL ?>/edit-auction.php?id=<?= $a['id'] ?>" class="btn-outline">Edit</a>
                             <?php endif; ?>
                             <?php if ($status !== 'removed' && $noBids): ?>

@@ -74,7 +74,7 @@ require __DIR__ . '/includes/header.php';
     <p class="muted">Fill in the details below. Your auction starts as soon as you submit.</p>
 
     <?php if (!empty($errors)): ?>
-        <div class="alert alert-error">Please fix the errors below.<?= isset($_FILES['images']) ? ' You will need to select your photos again.' : '' ?></div>
+        <div class="alert alert-error" role="alert">Please fix the errors below.<?= isset($_FILES['images']) ? ' You will need to select your photos again.' : '' ?></div>
     <?php endif; ?>
 
     <form method="post" enctype="multipart/form-data" novalidate>
@@ -103,7 +103,7 @@ require __DIR__ . '/includes/header.php';
             <div>
                 <label for="starting_price">Starting price (Rs.)</label>
                 <input type="number" id="starting_price" name="starting_price" value="<?= old('starting_price') ?>"
-                       min="10" step="1" required>
+                       min="10" step="1" inputmode="numeric" required>
                 <?php if (isset($errors['starting_price'])): ?><p class="field-error"><?= e($errors['starting_price']) ?></p><?php endif; ?>
             </div>
             <div>

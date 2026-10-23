@@ -46,17 +46,17 @@ require __DIR__ . '/includes/header.php';
     <p class="muted">Welcome back to Nepbay.</p>
 
     <?php if ($error): ?>
-        <div class="alert alert-error"><?= e($error) ?></div>
+        <div class="alert alert-error" role="alert"><?= e($error) ?></div>
     <?php endif; ?>
 
     <form method="post" novalidate>
         <?= csrf_field() ?>
 
         <label for="email">Email</label>
-        <input type="email" id="email" name="email" value="<?= old('email') ?>" required autofocus>
+        <input type="email" id="email" name="email" value="<?= old('email') ?>" autocomplete="email" required autofocus>
 
         <label for="password">Password</label>
-        <input type="password" id="password" name="password" required>
+        <input type="password" id="password" name="password" autocomplete="current-password" required>
 
         <button type="submit" class="btn btn-full">Log in</button>
     </form>

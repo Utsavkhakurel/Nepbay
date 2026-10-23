@@ -86,10 +86,10 @@ function category_link(int $id): string
 }
 ?>
 
-<nav class="category-bar">
-    <a href="<?= category_link(0) ?>" class="<?= $categoryId === 0 ? 'current' : '' ?>">All</a>
+<nav class="category-bar" aria-label="Categories">
+    <a href="<?= category_link(0) ?>" class="<?= $categoryId === 0 ? 'current' : '' ?>"<?= $categoryId === 0 ? ' aria-current="page"' : '' ?>>All</a>
     <?php foreach ($categories as $c): ?>
-        <a href="<?= category_link($c['id']) ?>" class="<?= $categoryId === $c['id'] ? 'current' : '' ?>"><?= e($c['name']) ?></a>
+        <a href="<?= category_link($c['id']) ?>" class="<?= $categoryId === $c['id'] ? 'current' : '' ?>"<?= $categoryId === $c['id'] ? ' aria-current="page"' : '' ?>><?= e($c['name']) ?></a>
     <?php endforeach; ?>
 </nav>
 
@@ -145,7 +145,7 @@ function category_link(int $id): string
                 <img src="<?= image_url($a['image']) ?>" alt="" class="card-img" loading="lazy">
                 <div class="card-body">
                     <p class="card-category"><?= e($a['category']) ?></p>
-                    <h3 class="card-title"><?= e($a['title']) ?></h3>
+                    <h2 class="card-title"><?= e($a['title']) ?></h2>
                     <p class="card-price">
                         <span class="price"><?= format_price($a['price']) ?></span>
                         <span class="price-label"><?= $a['current_bid'] ? 'current bid' : 'starting price' ?></span>
@@ -160,7 +160,7 @@ function category_link(int $id): string
     </div>
 
     <?php if ($totalPages > 1): ?>
-        <div class="pagination">
+        <nav class="pagination" aria-label="Pages">
             <?php if ($page > 1): ?>
                 <a href="<?= e(page_link($page - 1)) ?>">&larr; Previous</a>
             <?php endif; ?>
@@ -168,7 +168,7 @@ function category_link(int $id): string
             <?php if ($page < $totalPages): ?>
                 <a href="<?= e(page_link($page + 1)) ?>">Next &rarr;</a>
             <?php endif; ?>
-        </div>
+        </nav>
     <?php endif; ?>
 <?php endif; ?>
 
