@@ -53,6 +53,16 @@ function time_left(int $seconds): string
     return "{$minutes}m " . ($seconds % 60) . 's left';
 }
 
+// Auction length for the sell form: 6 -> "6 hours", 72 -> "3 days"
+function duration_label(int $hours): string
+{
+    if ($hours < 24) {
+        return $hours . ($hours === 1 ? ' hour' : ' hours');
+    }
+    $days = intdiv($hours, 24);
+    return $days . ($days === 1 ? ' day' : ' days');
+}
+
 // ---- Bidding rules ----
 
 // The lowest bid allowed right now: the starting price if nobody has bid yet,

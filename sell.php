@@ -17,12 +17,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $description = trim($_POST['description'] ?? '');
         $price       = trim($_POST['starting_price'] ?? '');
         $increment   = trim($_POST['bid_increment'] ?? '');
-        $days        = (int) ($_POST['duration'] ?? 0);
+        $hours       = (int) ($_POST['duration'] ?? 0);
         $images      = uploaded_files('images');
 
         // ---- Validation ----
         $errors = listing_errors($title, $categoryId, $description, $price, $increment, $categories);
-        if (!in_array($days, AUCTION_DURATIONS)) {
+        if (!in_array($hours, AUCTION_DURATIONS)) {
             $errors['duration'] = 'Please choose how long the auction should run.';
         }
         $imageError = image_upload_error($images);
@@ -49,7 +49,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 }
 
                 $startTime = date('Y-m-d H:i:s');
-                $endTime   = date('Y-m-d H:i:s', strtotime("+$days days"));
+                $endTime   = date('Y-m-d H:i:s', strtotime("+$hours hours"));
                 $pdo->prepare('INSERT INTO auctions (product_id, starting_price, bid_increment, start_time, end_time) VALUES (?, ?, ?, ?, ?)')
                     ->execute([$productId, $price, $increment, $startTime, $endTime]);
 
@@ -119,7 +119,7 @@ require __DIR__ . '/includes/header.php';
         <label for="duration">Auction length</label>
         <select id="duration" name="duration" required>
             <?php foreach (AUCTION_DURATIONS as $d): ?>
-                <option value="<?= $d ?>" <?= (int) ($_POST['duration'] ?? 7) === $d ? 'selected' : '' ?>><?= $d ?> <?= $d === 1 ? 'day' : 'days' ?></option>
+                <option value="<?= $d ?>" <?= (int) ($_POST['duration'] ?? 168) === $d ? 'selected' : '' ?>><?= duration_label($d) ?></option>
             <?php endforeach; ?>
         </select>
         <?php if (isset($errors['duration'])): ?><p class="field-error"><?= e($errors['duration']) ?></p><?php endif; ?>

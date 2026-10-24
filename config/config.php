@@ -27,5 +27,5 @@ define('UPLOAD_DIR', __DIR__ . '/../uploads/');
 define('MAX_IMAGES', 5);
 define('MAX_IMAGE_SIZE', 2 * 1024 * 1024);   // 2 MB per photo
 
-// How long an auction can run, in days
-define('AUCTION_DURATIONS', [1, 3, 5, 7, 14]);
+// How long an auction can run, in hours (24 = 1 day, 168 = 7 days)
+define('AUCTION_DURATIONS', [1, 3, 6, 12, 24, 72, 120, 168, 336]);
