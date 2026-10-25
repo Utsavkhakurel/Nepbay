@@ -52,7 +52,7 @@ $winnerId        = (int) $auction['winner_id'];
 $sellerBlocked   = $auction['seller_status'] === 'blocked';
 $minimumBid      = minimum_bid($auction['starting_price'], $auction['current_bid'], $auction['bid_increment']);
 
-// This user's highest bid, if they have bid here (bids are sorted highest first)
+// This users highest bid, if they have bid here (bids are sorted highest first)
 $myBid = null;
 foreach ($bids as $b) {
     if ((int) $b['user_id'] === $userId) {
@@ -98,10 +98,7 @@ require __DIR__ . '/includes/header.php';
                     <span class="muted"><?= format_datetime($auction['end_time']) ?></span>
                 <?php else: ?>
                     <span class="badge badge-live">Live</span>
-                    <span class="ends">
-                        <span class="time-left" data-seconds-left="<?= $secondsLeft ?>"><?= time_left($secondsLeft) ?></span>
-                        <span class="muted"><?= ends_label($auction['start_time'], $auction['end_time']) ?></span>
-                    </span>
+                    <span class="time-left" data-seconds-left="<?= $secondsLeft ?>"><?= time_left($secondsLeft) ?></span>
                 <?php endif; ?>
             </div>
 
@@ -186,8 +183,6 @@ require __DIR__ . '/includes/header.php';
                 <dd><?= format_price($auction['bid_increment']) ?></dd>
                 <dt>Bids</dt>
                 <dd><?= count($bids) ? '<a href="#bids">' . count($bids) . '</a>' : '0' ?></dd>
-                <dt>Auction type</dt>
-                <dd><?= is_hourly($auction['start_time'], $auction['end_time']) ? 'Hourly' : 'Daily' ?>, <?= duration_label($auction['start_time'], $auction['end_time']) ?></dd>
                 <dt><?= $hasEnded ? 'Ended on' : 'Ends on' ?></dt>
                 <dd><?= format_datetime($auction['end_time']) ?></dd>
                 <dt>Listed on</dt>
