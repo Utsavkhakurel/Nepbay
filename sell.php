@@ -17,14 +17,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $description = trim($_POST['description'] ?? '');
         $price       = trim($_POST['starting_price'] ?? '');
         $increment   = trim($_POST['bid_increment'] ?? '');
-        $hours       = (int) ($_POST['duration'] ?? 0);
+        $type        = $_POST['duration_type'] ?? '';
+        $length      = (int) ($_POST[$type === 'hourly' ? 'duration_hours' : 'duration_days'] ?? 0);
         $images      = uploaded_files('images');
 
         // ---- Validation ----
         $errors = listing_errors($title, $categoryId, $description, $price, $increment, $categories);
-        if (!in_array($hours, AUCTION_DURATIONS)) {
+        if (!in_array($type, ['hourly', 'daily'])
+            || !in_array($length, $type === 'hourly' ? HOURLY_DURATIONS : DAILY_DURATIONS)) {
             $errors['duration'] = 'Please choose how long the auction should run.';
         }
+        $hours = $type === 'hourly' ? $length : $length * 24;
         $imageError = image_upload_error($images);
         if ($imageError) {
             $errors['images'] = $imageError;
@@ -116,12 +119,31 @@ require __DIR__ . '/includes/header.php';
             </div>
         </div>
 
-        <label for="duration">Auction length</label>
-        <select id="duration" name="duration" required>
-            <?php foreach (AUCTION_DURATIONS as $d): ?>
-                <option value="<?= $d ?>" <?= (int) ($_POST['duration'] ?? 168) === $d ? 'selected' : '' ?>><?= duration_label($d) ?></option>
-            <?php endforeach; ?>
-        </select>
+        <?php $type = ($_POST['duration_type'] ?? 'daily') === 'hourly' ? 'hourly' : 'daily'; ?>
+        <div class="form-row half">
+            <div>
+                <span class="label">Auction type</span>
+                <div class="toggle">
+                    <label><input type="radio" name="duration_type" value="hourly" <?= $type === 'hourly' ? 'checked' : '' ?>> Hourly</label>
+                    <label><input type="radio" name="duration_type" value="daily" <?= $type === 'daily' ? 'checked' : '' ?>> Daily</label>
+                </div>
+            </div>
+            <div>
+                <label for="duration_hours" data-type="hourly" <?= $type === 'hourly' ? '' : 'hidden' ?>>Auction length</label>
+                <select id="duration_hours" name="duration_hours" data-type="hourly" <?= $type === 'hourly' ? '' : 'hidden' ?>>
+                    <?php foreach (HOURLY_DURATIONS as $h): ?>
+                        <option value="<?= $h ?>" <?= (int) ($_POST['duration_hours'] ?? 6) === $h ? 'selected' : '' ?>><?= $h ?> <?= $h === 1 ? 'hour' : 'hours' ?></option>
+                    <?php endforeach; ?>
+                </select>
+                <label for="duration_days" data-type="daily" <?= $type === 'daily' ? '' : 'hidden' ?>>Auction length</label>
+                <select id="duration_days" name="duration_days" data-type="daily" <?= $type === 'daily' ? '' : 'hidden' ?>>
+                    <?php foreach (DAILY_DURATIONS as $d): ?>
+                        <option value="<?= $d ?>" <?= (int) ($_POST['duration_days'] ?? 7) === $d ? 'selected' : '' ?>><?= $d ?> <?= $d === 1 ? 'day' : 'days' ?></option>
+                    <?php endforeach; ?>
+                </select>
+            </div>
+        </div>
+        <p class="hint" id="ends-preview"></p>
         <?php if (isset($errors['duration'])): ?><p class="field-error"><?= e($errors['duration']) ?></p><?php endif; ?>
 
         <label for="images">Photos</label>
@@ -135,6 +157,32 @@ require __DIR__ . '/includes/header.php';
 </div>
 
 <script>
+// Show only the length dropdown for the chosen auction type,
+// and tell the seller when the auction will end
+const typeInputs = document.querySelectorAll('input[name="duration_type"]');
+const endsPreview = document.getElementById('ends-preview');
+
+function updateDuration() {
+    const type = document.querySelector('input[name="duration_type"]:checked').value;
+    document.querySelectorAll('[data-type]').forEach(function (el) {
+        el.hidden = el.dataset.type !== type;
+    });
+
+    const length = Number(document.getElementById(type === 'hourly' ? 'duration_hours' : 'duration_days').value);
+    const end = new Date(Date.now() + length * (type === 'hourly' ? 3600000 : 86400000));
+    const time = end.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+    const date = end.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' });
+    const sameDay = end.toDateString() === new Date().toDateString();
+
+    endsPreview.textContent = 'Starts as soon as you submit, ends '
+        + (type === 'hourly' && sameDay ? 'today at ' + time : date + ' at ' + time) + '.';
+}
+
+typeInputs.forEach(function (input) { input.addEventListener('change', updateDuration); });
+document.getElementById('duration_hours').addEventListener('change', updateDuration);
+document.getElementById('duration_days').addEventListener('change', updateDuration);
+updateDuration();
+
 // Show small previews of the chosen photos
 document.getElementById('images').addEventListener('change', function () {
     const preview = document.getElementById('preview');

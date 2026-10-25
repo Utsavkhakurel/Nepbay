@@ -51,7 +51,7 @@ $offset = ($page - 1) * $perPage;
 
 $orderBy = $sortOptions[$sort][1];
 $stmt = db()->prepare("
-    SELECT a.id, a.current_bid,
+    SELECT a.id, a.current_bid, a.start_time, a.end_time,
            COALESCE(a.current_bid, a.starting_price)   AS price,
            TIMESTAMPDIFF(SECOND, NOW(), a.end_time)    AS seconds_left,
            p.title, c.name AS category,
@@ -144,7 +144,10 @@ function category_link(int $id): string
             <a href="<?= BASE_URL ?>/auction.php?id=<?= $a['id'] ?>" class="card">
                 <img src="<?= image_url($a['image']) ?>" alt="" class="card-img" loading="lazy">
                 <div class="card-body">
-                    <p class="card-category"><?= e($a['category']) ?></p>
+                    <p class="card-category">
+                        <?= e($a['category']) ?>
+                        <?php if (is_hourly($a['start_time'], $a['end_time'])): ?><span class="badge badge-hourly">Hourly</span><?php endif; ?>
+                    </p>
                     <h2 class="card-title"><?= e($a['title']) ?></h2>
                     <p class="card-price">
                         <span class="price"><?= format_price($a['price']) ?></span>
@@ -154,6 +157,7 @@ function category_link(int $id): string
                         <span><?= $a['bid_count'] ? $a['bid_count'] . ($a['bid_count'] == 1 ? ' bid' : ' bids') : 'No bids' ?></span>
                         <span class="time-left" data-seconds-left="<?= (int) $a['seconds_left'] ?>"><?= time_left((int) $a['seconds_left']) ?></span>
                     </div>
+                    <p class="card-ends"><?= ends_label($a['start_time'], $a['end_time']) ?></p>
                 </div>
             </a>
         <?php endforeach; ?>

@@ -174,6 +174,19 @@ input[type="file"]::file-selector-button {
 }
 .field-error { color: var(--error-text); font-size: 0.88rem; margin-top: 5px; }
 .hint { font-size: 0.85rem; color: var(--muted); margin-bottom: 8px; }
+[hidden] { display: none !important; }
+.label { display: block; font-weight: 600; font-size: 0.92rem; margin: 16px 0 6px; }
+
+/* Two-option switch, e.g. Hourly / Daily on the sell form */
+.toggle { display: flex; border: 1px solid var(--border-strong); border-radius: var(--radius); overflow: hidden; }
+.toggle label {
+    flex: 1; margin: 0; padding: 10px 12px; text-align: center; font-weight: 500;
+    color: var(--text-soft); background: var(--white); cursor: pointer;
+}
+.toggle label + label { border-left: 1px solid var(--border-strong); }
+.toggle input { position: absolute; opacity: 0; pointer-events: none; }
+.toggle label:has(input:checked) { background: var(--navy); color: var(--white); }
+.toggle label:has(input:focus-visible) { box-shadow: inset 0 0 0 2px var(--primary); }
 
 /* ---------- Login / register ---------- */
 .auth-card {
@@ -260,6 +273,8 @@ input[type="file"]::file-selector-button {
 .price { font-weight: 700; font-size: 1.05rem; }
 .time-left { font-size: 0.85rem; color: var(--muted); white-space: nowrap; }
 .card-foot .time-left.soon, .time-left.soon { color: var(--primary); font-weight: 600; }
+.card-category { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.card-ends { margin-top: 4px; font-size: 0.78rem; color: var(--muted); text-align: right; }
 
 /* ---------- Auction details ---------- */
 .back-link { display: inline-block; font-size: 0.9rem; font-weight: 500; color: var(--muted); margin-bottom: 16px; }
@@ -289,6 +304,8 @@ input[type="file"]::file-selector-button {
 }
 .auction-status .time-left { font-size: 1rem; font-weight: 600; color: var(--text); }
 .auction-status .time-left.soon { color: var(--primary); }
+.auction-status .ends { display: flex; flex-direction: column; align-items: flex-end; text-align: right; }
+.auction-status .ends .muted { font-size: 0.85rem; }
 .price.big { display: block; font-size: 1.9rem; letter-spacing: -0.01em; line-height: 1.2; }
 .details {
     display: grid; grid-template-columns: auto 1fr; gap: 6px 16px; font-size: 0.92rem;
@@ -339,6 +356,7 @@ tr.editing td { background: #fffbea; }
 .badge-active, .badge-live, .badge-winning, .badge-won, .badge-sold { background: var(--success-bg); color: var(--success-text); }
 .badge-blocked, .badge-removed { background: var(--error-bg); color: var(--error-text); }
 .badge-outbid { background: var(--warning-bg); color: var(--warning-text); }
+.badge-hourly { background: var(--navy-soft); color: var(--navy); }
 .badge-ended, .badge-lost, .badge-unsold { background: var(--neutral-bg); color: var(--text-soft); }
 
 /* ---------- Lists: filters, empty state, pagination ---------- */

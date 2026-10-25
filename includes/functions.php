@@ -53,14 +53,39 @@ function time_left(int $seconds): string
     return "{$minutes}m " . ($seconds % 60) . 's left';
 }
 
-// Auction length for the sell form: 6 -> "6 hours", 72 -> "3 days"
-function duration_label(int $hours): string
+// Auctions shorter than a day are "hourly", the rest are "daily"
+function is_hourly(string $start, string $end): bool
 {
+    return strtotime($end) - strtotime($start) < 86400;
+}
+
+// How long an auction runs: "6 hours", "7 days"
+function duration_label(string $start, string $end): string
+{
+    $hours = (int) round((strtotime($end) - strtotime($start)) / 3600);
     if ($hours < 24) {
         return $hours . ($hours === 1 ? ' hour' : ' hours');
     }
-    $days = intdiv($hours, 24);
+    $days = (int) round($hours / 24);
     return $days . ($days === 1 ? ' day' : ' days');
+}
+
+// When a live auction ends. Hourly ones show the clock time,
+// daily ones the date: "Ends today, 8:00 PM" / "Ends Sat, 31 Oct"
+function ends_label(string $start, string $end): string
+{
+    $endTs = strtotime($end);
+    if (!is_hourly($start, $end)) {
+        return 'Ends ' . date('D, j M', $endTs);
+    }
+    if (date('Y-m-d', $endTs) === date('Y-m-d')) {
+        $day = 'today';
+    } elseif (date('Y-m-d', $endTs) === date('Y-m-d', strtotime('+1 day'))) {
+        $day = 'tomorrow';
+    } else {
+        $day = date('j M', $endTs);
+    }
+    return "Ends $day, " . date('g:i A', $endTs);
 }
 
 // ---- Bidding rules ----
